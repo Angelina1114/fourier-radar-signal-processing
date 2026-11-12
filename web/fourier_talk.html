@@ -117,6 +117,10 @@ table.rt th { color: var(--muted); font-weight: 500; }
 .step .d { font-size: 0.8em; color: var(--muted); }
 .chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 0.8em; }
 .chips span { border: 1.5px solid currentColor; border-radius: 10px; padding: 2px 10px; }
+.pick { display: flex; flex-wrap: wrap; gap: 6px 22px; align-items: center; font-size: 0.86em; }
+.pick .f { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; font-family: var(--f-mono); }
+.pick .f i { font-style: normal; font-weight: 700; margin-right: 4px; }
+.pick .f.u i { color: var(--sig); }
 .reveal-line { transition: opacity .25s; }
 .reveal-line.off { opacity: 0.12; }
 
@@ -424,14 +428,13 @@ table.rt th { color: var(--muted); font-weight: 500; }
     </div>
     <div class="demo">
       <div class="demo-h"><b>選兩個基底，看乘積面積</b><span class="tag">時間域 · 一個完整週期</span></div>
-      <div class="chips" style="gap:14px">
-        <span style="border:0;padding:0">\(u=\)</span><select id="s10ut" aria-label="u 的型式"><option value="cos">cos</option><option value="sin">sin</option></select>
-        <span style="border:0;padding:0">\(m=\)</span><select id="s10m" aria-label="m"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
-        <span style="border:0;padding:0">\(v=\)</span><select id="s10vt" aria-label="v 的型式"><option value="cos">cos</option><option value="sin">sin</option></select>
-        <span style="border:0;padding:0">\(n=\)</span><select id="s10n" aria-label="n"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select>
+      <div class="pick">
+        <span class="f u"><i>u(t) =</i><select id="s10ut" aria-label="u 的型式"><option value="cos">cos</option><option value="sin">sin</option></select>(<select id="s10m" aria-label="m"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>·ω₀t)</span>
+        <span class="f"><i>v(t) =</i><select id="s10vt" aria-label="v 的型式"><option value="cos">cos</option><option value="sin">sin</option></select>(<select id="s10n" aria-label="n"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select>·ω₀t)</span>
       </div>
-      <canvas id="c10a" class="h-m"></canvas>
-      <canvas id="c10b" class="h-m"></canvas>
+      <div class="btns"><span class="seg" role="group" aria-label="快速範例"><button id="s10p1" aria-pressed="true">頻率不同</button><button id="s10p2" aria-pressed="false">同一個基底</button><button id="s10p3" aria-pressed="false">同頻 sin × cos</button></span></div>
+      <canvas id="c10a" class="h-m" style="height:clamp(130px, 21vh, 190px)"></canvas>
+      <canvas id="c10b" class="h-m" style="height:clamp(130px, 21vh, 190px)"></canvas>
       <div class="readout" id="r10"></div>
     </div>
   </div>
@@ -1077,17 +1080,26 @@ demos.s9 = () => {
 // ---------- 10
 demos.s10 = () => {
   const pa = new Plot($("#c10a")), pb = new Plot($("#c10b"));
-  ["s10ut", "s10m", "s10vt", "s10n"].forEach(id => $("#" + id).addEventListener("change", () => draw()));
+  const ids = ["s10ut", "s10m", "s10vt", "s10n"];
+  const presets = { s10p1: ["cos", 1, "cos", 2], s10p2: ["cos", 2, "cos", 2], s10p3: ["sin", 2, "cos", 2] };
+  ids.forEach(id => $("#" + id).addEventListener("change", () => draw()));
+  Object.entries(presets).forEach(([bid, v]) => $("#" + bid).addEventListener("click", () => { ids.forEach((id, i) => ($("#" + id).value = v[i])); draw(); }));
+  const lab = (tp, k) => `${tp}(${k === 1 ? "" : k}ω₀t)`;
   function draw() {
     const ut = $("#s10ut").value, vt = $("#s10vt").value, m = +$("#s10m").value, n = +$("#s10n").value;
-    const F = (tp, k) => (u => (tp === "cos" ? Math.cos : Math.sin)(TAU * k * u)), u = F(ut, m), v = F(vt, n), pr = x => u(x) * v(x);
-    const I = integrate(pr, 0, 1, 6000);
+    Object.entries(presets).forEach(([bid, v]) => $("#" + bid).setAttribute("aria-pressed", v[0] === ut && v[1] === m && v[2] === vt && v[3] === n));
+    const F = (tp, k) => (x => (tp === "cos" ? Math.cos : Math.sin)(TAU * k * x)), u = F(ut, m), v = F(vt, n), pr = x => u(x) * v(x);
+    const I = integrate(pr, 0, 1, 6000), Ip = integrate(x => Math.max(0, pr(x)), 0, 1, 6000), In = I - Ip;
     if (pa.begin([0, 1], [-1.3, 1.3])) { pa.axes({ xt: [0, 0.25, 0.5, 0.75, 1], xd: 2, yt: [-1, 0, 1], xl: "t / T₀" });
-      pa.fn(u, tok("--sig"), { w: 2.2 }); pa.fn(v, tok("--ink"), { w: 2, dash: [6, 4] }); pa.text(pa.L + 6, 10, `實線 u = ${ut}(${m}ω₀t)　虛線 v = ${vt}(${n}ω₀t)`, tok("--ink"), { px: true, size: 12.5 }); }
+      pa.fn(u, tok("--sig"), { w: 2.4 }); pa.fn(v, tok("--ink"), { w: 1.8, dash: [6, 4] });
+      pa.text(pa.L + 6, 10, `藍實線 u = ${lab(ut, m)}　虛線 v = ${lab(vt, n)}`, tok("--ink"), { px: true, size: 12.5 }); }
     if (pb.begin([0, 1], [-1.15, 1.15])) { pb.axes({ xt: [0, 0.25, 0.5, 0.75, 1], xd: 2, yt: [-1, 0, 1], xl: "t / T₀", zero: true });
-      pb.fill(pr, 0, 1, tok("--accent"), tok("--muted"), 0.35); pb.fn(pr, tok("--ink"), { w: 2 }); pb.text(pb.L + 6, 10, "乘積 u·v：正面積（綠）與負面積（灰）", tok("--ink"), { px: true, size: 12.5 }); }
+      pb.fill(pr, 0, 1, tok("--accent"), tok("--muted"), 0.35); pb.fn(pr, tok("--ink"), { w: 2 });
+      pb.text(pb.L + 6, 10, "乘積 u(t)·v(t)：綠＝正面積，灰＝負面積", tok("--ink"), { px: true, size: 12.5 }); }
     const same = ut === vt && m === n;
-    $("#r10").innerHTML = `⟨u, v⟩ = ∫₀^T₀ u v dt = <b>${fmt(I, 4)} T₀</b>　→ ${same ? "<b>相同基底：T₀/2</b>" : "<b>正交：0</b>（正負面積抵銷）"}`;
+    const verdict = same ? "同一個基底：乘積是平方、恆 ≥ 0 → <b>T₀/2</b>"
+      : (ut !== vt && m === n ? "同頻的 sin 與 cos 也正交 → <b>0</b>" : "頻率不同 → 正負面積抵銷 → <b>0</b>");
+    $("#r10").innerHTML = `⟨u, v⟩ = 正面積 ${fmt(Ip, 3)} T₀ ＋ 負面積 ${fmt(In, 3)} T₀ = <b>${fmt(I, 3)} T₀</b><br>${verdict}`;
   }
   return draw;
 };
@@ -1135,7 +1147,7 @@ demos.s12 = () => {
       p.text(3.15, 0.25, "aₙ", tok("--ink"), { align: "right", size: 15 }); p.text(0.15, 3.05, "−bₙ（注意負號）", tok("--ink"), { size: 13 });
       p.path([a, a], [0, -b], tok("--muted"), { dash: [3, 3], w: 1.3 }); p.path([0, a], [-b, -b], tok("--muted"), { dash: [3, 3], w: 1.3 });
       if (A > 0.05) { p.arrow(0, 0, a, -b, tok("--spec"), { w: 3, hs: 11 }); p.arc(0, 0, 0.7, Math.min(0, phi), Math.max(0, phi), tok("--phase"), 2.6); }
-      p.dot(a, -b, tok("--spec"), 7); p.text(a + 0.15, -b + (b > 0 ? -0.3 : 0.3), "(aₙ, −bₙ)  拖我", tok("--ink"), { size: 12.5, align: a > 1.5 ? "right" : "left" });
+      p.dot(a, -b, tok("--spec"), 7); p.text(a > 1.2 ? a - 0.25 : a + 0.25, -b + (b > 0 ? -0.42 : 0.3), "(aₙ, −bₙ)  拖我", tok("--ink"), { size: 12.5, align: a > 1.2 ? "right" : "left" });
       p.text(-3.1, -3.0, "φₙ", tok("--phase"), { size: 13 }); p.text(-2.7, -3.0, "= 綠色向量與水平軸的夾角", tok("--muted"), { size: 12 });
     }
     if (pw.begin([0, TAU * 1.5], [-4.5, 4.5])) { pw.axes({ xt: [0, PI, TAU, 3 * PI], xf: v => ["0", "π", "2π", "3π"][Math.round(v / PI)], yt: [-4, 0, 4], xl: "θ = nω₀t" });
@@ -1359,6 +1371,15 @@ let cur = 0, redraw = null, anim = null, last = 0;
 function stopAnim() { if (anim) cancelAnimationFrame(anim); anim = null; }
 function startAnim(fn) { stopAnim(); if (reduceMotion) { fn(0); return; } last = performance.now(); const loop = now => { fn(now - last); last = now; anim = requestAnimationFrame(loop); }; anim = requestAnimationFrame(loop); }
 
+function fitEqs(s) {
+  if (!s || s.hidden) return;
+  $$(".eq", s).forEach(e => {
+    e.style.fontSize = "";
+    const sv = e.querySelector("mjx-container > svg"); if (!sv) return;
+    const W = e.clientWidth, w = sv.getBoundingClientRect().width;
+    if (W > 0 && w > W) { const f = parseFloat(getComputedStyle(e).fontSize); e.style.fontSize = Math.max(f * 0.6, f * (W - 4) / w).toFixed(2) + "px"; }
+  });
+}
 function show(i, push = true) {
   i = Math.max(0, Math.min(N - 1, i));
   slides[cur].hidden = true; cur = i; const s = slides[cur]; s.hidden = false;
@@ -1376,6 +1397,7 @@ function show(i, push = true) {
     if (s.id === "s1" || s.id === "s19") startAnim(redraw); else redraw();
   }); }
   $$("#ovGrid button").forEach((b, k) => b.setAttribute("aria-current", k === i));
+  requestAnimationFrame(() => fitEqs(s));
 }
 function go(d) { show(cur + d); }
 $("#prev").addEventListener("click", () => go(-1));
@@ -1408,12 +1430,13 @@ document.addEventListener("keydown", e => {
 let sx = null; $("#stage").addEventListener("touchstart", e => { sx = e.touches[0].clientX; }, { passive: true });
 $("#stage").addEventListener("touchend", e => { if (sx === null || e.target.closest("canvas, input, select")) { sx = null; return; } const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 70) go(dx < 0 ? 1 : -1); sx = null; });
 
-const rerender = () => { if (redraw && !anim) redraw(); };
+const rerender = () => { fitEqs(slides[cur]); if (redraw && !anim) redraw(); };
 new ResizeObserver(rerender).observe($("#stage"));
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", rerender);
 new MutationObserver(rerender).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 window.addEventListener("hashchange", () => { const k = slides.findIndex(s => "#" + s.id === location.hash); if (k >= 0 && k !== cur) show(k, false); });
 document.fonts && document.fonts.ready.then(rerender);
+window.MathJax?.startup?.promise?.then(() => fitEqs(slides[cur]));
 
 const start = slides.findIndex(s => "#" + s.id === location.hash);
 slides.forEach(s => (s.hidden = true));
