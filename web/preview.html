@@ -145,7 +145,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
     <span class="brand hide-sm">傅立葉分析與雷達</span>
     <span class="chap" id="chap">導論</span>
     <div class="progress" aria-hidden="true"><i id="prog"></i></div>
-    <span class="count" id="count">1 / 22</span>
+    <span class="count" id="count">1 / 24</span>
   </header>
 
   <main class="stage" id="stage">
@@ -181,6 +181,62 @@ table.rt th { color: var(--muted); font-weight: 500; }
   </div>
   <div class="box warn"><b class="c-echo">雷達關聯：</b>回波延遲 → 相位變化；運動 → 都卜勒頻移</div>
   <p class="small muted">點任一章節卡片可直接跳到該章。本次只講數學工具的「為什麼」與「如何解讀」；DFT、FFT、FMCW 屬後續學習。</p>
+</section>
+
+<!-- ================================================================ 導論 +1：傅立葉分析是什麼（網站版新增） -->
+<section class="slide" id="intro1" data-chapter="導論" data-title="傅立葉分析是什麼？" data-extra="1" hidden>
+  <h2>傅立葉分析是什麼？</h2>
+  <div class="cols">
+    <div>
+      <p><b>核心想法：</b>把一個訊號寫成許多不同頻率的正弦之和；每個頻率的<b class="c-spec">振幅</b>與<b class="c-phase">相位</b>合起來，就是這個訊號的<b class="c-spec">頻譜</b>。</p>
+      <div class="eq">\[x(t)\;\approx\;\sum_{k} A_k\cos(2\pi f_k t+\varphi_k)\]</div>
+      <p class="small muted" style="margin-top:-4px">觀念式；嚴格的形式與收斂條件在 Ch.3（級數）與 Ch.4（轉換）。</p>
+      <ul class="clean">
+        <li><b>分析（analysis）：</b>\(x(t)\) → 各頻率成分 \((f_k, A_k, \varphi_k)\)</li>
+        <li><b>合成（synthesis）：</b>各頻率成分 → 加回 \(x(t)\)</li>
+        <li><b>兩種工具：</b>週期訊號用<b>傅立葉級數</b>（離散頻率 \(n f_0\)）；一般訊號用<b>傅立葉轉換</b>（連續頻率 \(f\)）</li>
+      </ul>
+      <div class="box"><b>類比（僅供直覺）：</b>像稜鏡把白光分成各種顏色的光，或把和弦拆成一個個音。分得開、也合得回去。</div>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>用正弦「拼」出一個波形</b><span class="tag">時間域 ＋ 頻率域 · ω₀ = 1</span></div>
+      <div class="btns"><span class="seg" role="group" aria-label="目標波形"><button id="i1sq" aria-pressed="true">方波</button><button id="i1tri" aria-pressed="false">三角波</button><button id="i1saw" aria-pressed="false">鋸齒波</button></span>
+        <button class="btn" id="i1parts" aria-pressed="true">顯示各個正弦</button></div>
+      <canvas id="ci1a" class="h-l"></canvas>
+      <canvas id="ci1b" class="h-m"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="i1K">使用前 \(K\) 個諧波</label><input type="range" id="i1K" min="1" max="25" step="1" value="5"><output data-for="i1K" data-d="0"></output></div>
+      </div>
+      <div class="readout" id="ri1"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 導論 +2：為什麼要在兩個域之間轉換（網站版新增） -->
+<section class="slide" id="intro2" data-chapter="導論" data-title="為什麼要在時間域與頻率域之間轉換？" data-extra="1" hidden>
+  <h2>為什麼要在時間域與頻率域之間轉換？</h2>
+  <div class="cols">
+    <div>
+      <ul class="clean">
+        <li><b class="c-sig">時間域</b>回答「<b>何時</b>發生、怎麼變化」；<b class="c-spec">頻率域</b>回答「有<b>哪些頻率</b>、各多強、相位多少」。</li>
+        <li><b>有些事在頻率域更簡單：</b>時間上混在一起的成分，在頻率上是分開的峰，容易辨認、容易分離（例如濾除雜訊）。</li>
+        <li><b>延遲與運動的資訊藏在頻率域：</b>延遲 → 相位因子 \(e^{-j2\pi f\tau}\)；運動 → 頻移（都卜勒）。這正是雷達要讀的資訊。</li>
+        <li><b>還要能轉回來：</b>處理完要回到時間域使用（例如回波何時到達）；逆轉換保證在適當條件下資訊不遺失。</li>
+      </ul>
+      <div class="box key big">流程：時間域 → <span class="c-spec">轉到頻率域處理</span> → 轉回時間域</div>
+      <p class="small muted">右邊是示意：雜訊用許多 200–490 Hz 的小正弦模擬，所以頻譜可以精確寫出；從取樣資料計算頻譜（DFT/FFT）是後續主題。</p>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>雜訊中的訊號：在頻率域刪掉高頻，再轉回來</b><span class="tag">示意</span></div>
+      <canvas id="ci2a" class="h-m"></canvas>
+      <canvas id="ci2b" class="h-m"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="i2fc">截止頻率</label><input type="range" id="i2fc" min="60" max="500" step="5" value="160"><output data-for="i2fc" data-d="0" data-u=" Hz"></output></div>
+      </div>
+      <div class="btns"><button class="btn" id="i2on" aria-pressed="false">套用：刪掉高於截止的成分</button></div>
+      <div class="readout" id="ri2"></div>
+    </div>
+  </div>
 </section>
 
 <!-- ================================================================ 03 -->
@@ -665,7 +721,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
 
   <aside class="notes" id="notes" hidden aria-live="polite"><h3 id="notesTitle"></h3><div id="notesBody"></div></aside>
   <div class="overview" id="overview" hidden>
-    <div class="head"><b>全部 22 頁</b><button class="nav" id="ovClose">關閉</button></div>
+    <div class="head"><b id="ovHead">全部頁面</b><button class="nav" id="ovClose">關閉</button></div>
     <div class="grid" id="ovGrid"></div>
   </div>
 </div>
@@ -812,6 +868,76 @@ demos.s1 = () => {
     p.arc(0.4, 1.05, 0.38, PI * 1.1, PI * 1.9, tok("--ink"), 2.6);
     p.text(0.9, 0.55, "雷達", tok("--ink"), { size: 12 });
   };
+};
+
+// ---------- 導論 +1：用正弦拼波形
+demos.intro1 = () => {
+  const pt = new Plot($("#ci1a")), ps = new Plot($("#ci1b"));
+  bindOutputs($("#intro1")); onInputs(["i1K"], () => draw());
+  let shape = "sq";
+  const W = {
+    sq: { name: "方波", f: t => Math.sign(t), b: k => (k % 2 ? 4 / (PI * k) : 0) },
+    tri: { name: "三角波", f: t => 2 / PI * Math.asin(Math.sin(t)), b: k => (k % 2 ? 8 / (PI * PI) * ((k - 1) / 2 % 2 ? -1 : 1) / (k * k) : 0) },
+    saw: { name: "鋸齒波", f: t => t / PI, b: k => 2 / PI * (k % 2 ? 1 : -1) / k },
+  };
+  [["#i1sq", "sq"], ["#i1tri", "tri"], ["#i1saw", "saw"]].forEach(([sel, k]) => $(sel).addEventListener("click", () => {
+    shape = k; ["#i1sq", "#i1tri", "#i1saw"].forEach(x => $(x).setAttribute("aria-pressed", x === sel)); draw(); }));
+  $("#i1parts").addEventListener("click", e => { const b = e.currentTarget; b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); draw(); });
+  function draw() {
+    const K = val("i1K"), w = W[shape], parts = $("#i1parts").getAttribute("aria-pressed") === "true";
+    const S = t => { let s = 0; for (let k = 1; k <= K; k++) s += w.b(k) * Math.sin(k * t); return s; };
+    if (pt.begin([-PI, PI], [-1.6, 1.6])) {
+      pt.axes({ xt: [-PI, -PI / 2, 0, PI / 2, PI], xf: v => ({ [-PI]: "−π", [-PI / 2]: "−π/2", 0: "0", [PI / 2]: "π/2", [PI]: "π" })[v], yt: [-1, 0, 1], xl: "t（rad）", zero: true });
+      pt.fn(w.f, tok("--muted"), { dash: [6, 5], w: 1.6, n: 1200 });
+      if (parts) for (let k = 1; k <= Math.min(K, 9); k++) if (Math.abs(w.b(k)) > 1e-12) pt.fn(t => w.b(k) * Math.sin(k * t), tok("--sig2"), { w: 1.2, a: 0.85 });
+      pt.fn(S, tok("--sig"), { w: 2.6, n: 1600 });
+      pt.text(pt.L + 6, 10, `虛線：目標${w.name}　粗藍：前 ${K} 個諧波之和${parts ? "　淡藍：各個正弦" : ""}`, tok("--ink"), { px: true, size: 12.5 });
+    }
+    if (ps.begin([0, 26], [0, 1.45])) {
+      ps.axes({ xt: [1, 5, 10, 15, 20, 25], yt: [0, 0.5, 1], yd: 1, xl: "諧波編號 k（頻率 k f₀）" });
+      for (let k = 1; k <= 25; k++) { const a = Math.abs(w.b(k)); if (a < 1e-12) { if (k <= K) ps.dot(k, 0, tok("--spec"), 3.5, true); continue; }
+        if (k <= K) ps.stem(k, a, tok("--spec"), { w: 3, r: 4 }); else ps.stem(k, a, tok("--grid"), { w: 3, r: 3.5 }); }
+      ps.text(ps.L + 6, 10, "頻率域：各諧波的振幅 Aₖ（綠＝已使用；灰＝尚未加入；空心＝係數為 0）", tok("--ink"), { px: true, size: 12.5 });
+    }
+    const err = Math.sqrt(integrate(t => (S(t) - w.f(t)) ** 2, -PI, PI, 6000) / TAU), tot = Math.sqrt(integrate(t => w.f(t) ** 2, -PI, PI, 6000) / TAU);
+    $("#ri1").innerHTML = `${w.name}：使用 k = 1…${K}　均方根誤差 = <b>${fmt(err, 4)}</b>（相對 ${fmt(100 * err / tot, 1)}%）<br>` +
+      (shape === "saw" ? "鋸齒波的所有諧波都有成分" : "這個波形的偶數諧波係數都是 0") + "；諧波越多、拼得越像";
+  }
+  return draw;
+};
+
+// ---------- 導論 +2：在頻率域濾掉雜訊
+demos.intro2 = () => {
+  const pt = new Plot($("#ci2a")), ps = new Plot($("#ci2b"));
+  bindOutputs($("#intro2")); onInputs(["i2fc"], () => draw());
+  $("#i2on").addEventListener("click", e => { const b = e.currentTarget; b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); draw(); });
+  let seed = 20261112; const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const comps = [{ f: 50, a: 1, p: 0, sig: true }, { f: 120, a: 0.6, p: 0.7, sig: true }];
+  for (let i = 0; i < 30; i++) comps.push({ f: 200 + 10 * i, a: 0.12 + 0.22 * rnd(), p: TAU * rnd(), sig: false });
+  const sum = (list, t) => list.reduce((s, c) => s + c.a * Math.sin(TAU * c.f * t / 1000 + c.p), 0);
+  function draw() {
+    const fc = val("i2fc"), on = $("#i2on").getAttribute("aria-pressed") === "true", kept = comps.filter(c => c.f <= fc);
+    const clean = comps.filter(c => c.sig);
+    if (pt.begin([0, 50], [-3.4, 3.4])) {
+      pt.axes({ xt: [0, 10, 20, 30, 40, 50], yt: [-2, 0, 2], xl: "t（ms）", zero: true });
+      pt.fn(t => sum(comps, t), tok("--sig2"), { w: 1.4, n: 2000, a: on ? 0.6 : 1 });
+      if (on) pt.fn(t => sum(kept, t), tok("--ink"), { w: 2.4, n: 2000 });
+      pt.text(pt.L + 6, 10, on ? "時間域：淡藍＝原始（含雜訊）　深色＝刪掉高頻後轉回來" : "時間域：原始接收波形（含雜訊），看不出有哪些成分", tok("--ink"), { px: true, size: 12.5 });
+    }
+    if (ps.begin([0, 520], [0, 1.25])) {
+      ps.axes({ xt: [0, 100, 200, 300, 400, 500], yt: [0, 0.5, 1], yd: 1, xl: "f（Hz）" });
+      if (on) { const c = ps.c; c.save(); c.fillStyle = tok("--warn-tint"); c.fillRect(ps.X(fc), ps.T, ps.R - ps.X(fc), ps.B - ps.T); c.restore(); }
+      comps.forEach(cp => { const drop = on && cp.f > fc; ps.stem(cp.f, cp.a, drop ? tok("--grid") : cp.sig ? tok("--spec") : tok("--muted"), { w: cp.sig ? 3.4 : 2, r: cp.sig ? 5 : 2.6 }); });
+      ps.vline(fc, tok("--echo"), [5, 3], 1.8);
+      ps.text(ps.L + 6, 10, "頻率域：綠＝訊號（50、120 Hz）　灰＝雜訊　紅虛線＝截止頻率", tok("--ink"), { px: true, size: 12.5 });
+    }
+    const rms = list => Math.sqrt(integrate(t => sum(list, t) ** 2, 0, 1000, 20000) / 1000);
+    const resid = on ? Math.sqrt(integrate(t => (sum(kept, t) - sum(clean, t)) ** 2, 0, 1000, 20000) / 1000) : rms(comps.filter(c => !c.sig));
+    const lost = on ? clean.filter(c => c.f > fc).map(c => c.f + " Hz") : [];
+    $("#ri2").innerHTML = (on ? `保留 <b>${kept.length}</b> / ${comps.length} 個成分；殘餘誤差 RMS = <b>${fmt(resid, 3)}</b>` : `雜訊 RMS = <b>${fmt(resid, 3)}</b>；訊號 RMS = ${fmt(rms(clean), 3)}`) +
+      (lost.length ? `<br><span class="c-echo">截止太低：連訊號 ${lost.join("、")} 也被刪掉了</span>` : on && fc >= 200 ? "<br>截止高於 200 Hz：部分雜訊被保留" : on ? "<br>雜訊全部移除，訊號完整保留" : "<br>按「套用」：在頻率域刪掉高頻成分，再轉回時間域");
+  }
+  return draw;
 };
 
 // ---------- 03
@@ -1208,6 +1334,26 @@ $$("[data-rev]").forEach(b => b.addEventListener("click", () => {
 // ------------------------------------------------------------------ deck controller
 const slides = $$(".slide"), N = slides.length;
 const notes = JSON.parse($("#notes-data").textContent);
+// 網站版新增頁（data-extra）的備註寫在本檔；其他頁依序對應 PPT 的備註
+const extraNotes = {
+  intro1: `【時間】約 1:20（網站版新增頁）
+【講法】在進入 Ch.1 之前先回答：傅立葉分析在做什麼？核心想法是把一個訊號寫成許多不同頻率的正弦之和，每個頻率有自己的振幅與相位，這組資訊就是頻譜。從訊號求出各頻率成分叫「分析」，把成分加回去得到訊號叫「合成」。週期訊號用傅立葉級數（頻率是 n f₀ 的離散值），一般訊號用傅立葉轉換（頻率是連續的 f）。
+【示範】右邊選方波：只用第 1 個諧波時只是一個正弦；把 K 拉到 5、15、25，和越來越接近方波，下方頻譜同時長出更多諧波。方波與三角波的偶數諧波係數都是 0（空心點），鋸齒波則每個諧波都有。均方根誤差隨 K 下降。
+【常見誤解】「傅立葉分析只能用在正弦波」——正好相反，它是把「不是正弦」的波形拆成正弦。另外，上式是觀念式，嚴格的形式（係數怎麼算、在什麼意義下收斂）在 Ch.3、Ch.4。
+【銜接下一頁】知道了「可以拆」，下一個問題是：為什麼值得拆？為什麼要在時間域和頻率域之間轉來轉去？`,
+  intro2: `【時間】約 1:30（網站版新增頁）
+【講法】兩個域回答不同的問題：時間域告訴我們何時發生、怎麼變化；頻率域告訴我們有哪些頻率、各多強、相位多少。有些事在頻率域特別簡單——時間上混在一起的成分，在頻率上是分開的峰，可以直接辨認、直接分離。雷達關心的延遲與運動，在頻率域分別表現成相位因子 e^{−j2πfτ} 與頻移。處理完還要能轉回時間域使用，逆轉換保證在適當條件下資訊不遺失。
+【示範】右邊的接收波形混了 50 Hz、120 Hz 兩個訊號與一堆 200–490 Hz 的雜訊，時間域看不出結構；頻率域裡訊號與雜訊明顯分開。按「套用」並把截止設在 160 Hz：在頻率域刪掉高頻成分、再轉回時間域，波形就變乾淨。若把截止拉到 100 Hz 以下，連 120 Hz 的訊號也會被刪掉，說明要先看懂頻譜才能正確處理。
+【誠實聲明】這是示意：雜訊用已知的小正弦模擬，所以頻譜可以精確寫出；真實系統要從取樣資料計算頻譜（DFT/FFT），那是後續主題。
+【常見誤解】「轉到頻率域就會失去時間資訊」——在適當條件下，正逆轉換可以完整還原；只是同一份資訊換一種表示方式。
+【銜接下一頁】接下來從 Ch.1 開始，正式定義訊號、時間域與頻率域。`,
+};
+const noteEdits = { s2: ["【銜接下一頁】先從最基本的「訊號」與「時間域」開始。", "【銜接下一頁】進入 Ch.1 之前，先用兩頁說明傅立葉分析是什麼，以及為什麼要在時間域與頻率域之間轉換。"] };
+{ let d = 0, mainNo = 0, apx = 0;
+  slides.forEach(s => {
+    if (s.dataset.extra) s._notes = extraNotes[s.id] || ""; else { s._notes = notes[d++] || ""; const e = noteEdits[s.id]; if (e) s._notes = s._notes.replace(e[0], e[1]); }
+    s._label = s.dataset.chapter.startsWith("Appendix") ? "A" + (++apx) : String(++mainNo).padStart(2, "0");
+  }); }
 let cur = 0, redraw = null, anim = null, last = 0;
 
 function stopAnim() { if (anim) cancelAnimationFrame(anim); anim = null; }
@@ -1220,7 +1366,7 @@ function show(i, push = true) {
   const ch = s.dataset.chapter; $("#chap").textContent = ch; $("#chap").classList.toggle("appx", ch.startsWith("Appendix"));
   $("#count").textContent = `${i + 1} / ${N}`; $("#prog").style.width = `${(i + 1) / N * 100}%`;
   $("#prev").disabled = i === 0; $("#next").disabled = i === N - 1;
-  $("#notesTitle").textContent = `第 ${i < 19 ? i + 1 : "A" + (i - 18)} 頁｜${s.dataset.title}`; $("#notesBody").textContent = notes[i] || "";
+  $("#notesTitle").textContent = `${s._label}｜${s.dataset.title}`; $("#notesBody").textContent = s._notes;
   if (push && location.hash !== "#" + s.id) history.replaceState(null, "", "#" + s.id);
   stopAnim(); redraw = null;
   const d = demos[s.id];
@@ -1243,7 +1389,7 @@ $("#btnNotes").addEventListener("click", () => toggleNotes());
 $("#btnOverview").addEventListener("click", () => toggleOverview());
 $("#ovClose").addEventListener("click", () => toggleOverview(false));
 $("#btnFs").addEventListener("click", toggleFs);
-slides.forEach((s, k) => { const b = document.createElement("button"); b.innerHTML = `<span class="k">${k < 19 ? String(k + 1).padStart(2, "0") : "A" + (k - 18)} · ${s.dataset.chapter}</span><span class="tt"></span>`;
+slides.forEach((s, k) => { const b = document.createElement("button"); b.innerHTML = `<span class="k">${s._label} · ${s.dataset.chapter}</span><span class="tt"></span>`;
   b.querySelector(".tt").textContent = s.dataset.title; b.addEventListener("click", () => { toggleOverview(false); show(k); }); $("#ovGrid").appendChild(b); });
 
 document.addEventListener("keydown", e => {
