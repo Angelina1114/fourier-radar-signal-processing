@@ -1,0 +1,1276 @@
+<title>傅立葉分析與雷達回波</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: one slide at a time on a quiet "lab bench" stage — talk text on the left, a live instrument
+   panel on the right; top bar = chapter + progress, bottom bar = transport controls. */
+:root {
+  --bg: #F4F6F9; --surface: #FFFFFF; --panel: #F7F9FC; --ink: #1B2A4A; --muted: #5B6678; --line: #DCE2EA;
+  --grid: #E8ECF2; --axis: #9AA3AF; --accent: #1F6F6B; --accent-ink: #FFFFFF; --tint: #E8F3F1;
+  --sig: #1F5FBF; --sig2: #7FA7E3; --dc: #D97400; --spec: #1E8449; --spec2: #82C9A0; --phase: #7D3C98;
+  --echo: #C0392B; --warn-tint: #FBEDEC; --note-tint: #FFF4E5; --appx: #7D3C98;
+  --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --fs: clamp(16px, 0.7vw + 10px, 23px);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0E1420; --surface: #151D2C; --panel: #1A2334; --ink: #E5EBF4; --muted: #9AA6B8; --line: #2A3549;
+  --grid: #222C3D; --axis: #5E6B80; --accent: #4DB6AC; --accent-ink: #0E1420; --tint: #183330;
+  --sig: #6EA8FF; --sig2: #3E6AA8; --dc: #FFA94D; --spec: #4CC38A; --spec2: #2C6E50; --phase: #C08BE0;
+  --echo: #FF7A6B; --warn-tint: #3A1F22; --note-tint: #33281A; --appx: #C08BE0; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0E1420; --surface: #151D2C; --panel: #1A2334; --ink: #E5EBF4; --muted: #9AA6B8; --line: #2A3549;
+  --grid: #222C3D; --axis: #5E6B80; --accent: #4DB6AC; --accent-ink: #0E1420; --tint: #183330;
+  --sig: #6EA8FF; --sig2: #3E6AA8; --dc: #FFA94D; --spec: #4CC38A; --spec2: #2C6E50; --phase: #C08BE0;
+  --echo: #FF7A6B; --warn-tint: #3A1F22; --note-tint: #33281A; --appx: #C08BE0; color-scheme: dark }
+
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: var(--fs); line-height: 1.6; }
+* { box-sizing: border-box; }
+.app { height: 100%; display: grid; grid-template-rows: auto 1fr auto; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+/* top bar */
+.bar { display: flex; align-items: center; gap: 14px; padding-block: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-bottom: 1px solid var(--line); background: var(--surface); }
+.brand { font-weight: 700; font-size: 0.82em; white-space: nowrap; }
+.chap { font-size: 0.72em; font-weight: 700; padding: 2px 12px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); white-space: nowrap; }
+.chap.appx { background: var(--appx); }
+.progress { flex: 1; height: 4px; background: var(--grid); border-radius: 2px; overflow: hidden; min-width: 40px; }
+.progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+.count { font-family: var(--f-mono); font-size: 0.78em; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* stage */
+.stage { overflow-y: auto; overflow-x: hidden; position: relative; }
+.slide { max-width: 1280px; margin: 0 auto; padding-block: clamp(14px, 2.4vh, 32px) 28px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); animation: in .35s ease both; }
+@keyframes in { from { transform: translateY(8px); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .slide { animation: none; } .progress i { transition: none; } }
+.slide h2 { font-size: 1.7em; line-height: 1.25; margin: 0 0 0.55em; font-weight: 900; letter-spacing: 0.01em; text-wrap: balance; }
+.slide p { margin: 0 0 0.6em; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); gap: clamp(18px, 2.4vw, 36px); align-items: start; }
+.cols > * { min-width: 0; }
+@media (max-width: 920px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.eq { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 4px 0; font-size: 1.05em; }
+.eq mjx-container[display="true"] { margin: 0.35em 0 !important; text-align: left !important; }
+.row { display: grid; grid-template-columns: 7.2em minmax(0, 1fr); align-items: center; gap: 10px; }
+.row > b { font-weight: 700; }
+.row > .eq { min-width: 0; }
+@media (max-width: 560px) { .row { grid-template-columns: minmax(0, 1fr); gap: 0; } }
+.box { border-radius: 12px; padding: 12px 18px; margin: 10px 0; background: var(--tint); }
+.box.warn { background: var(--warn-tint); }
+.box.note { background: var(--note-tint); }
+.box.key { border: 1.5px solid var(--accent); }
+.big { font-size: 1.15em; font-weight: 700; }
+.muted { color: var(--muted); }
+.small { font-size: 0.8em; }
+.c-sig { color: var(--sig); } .c-dc { color: var(--dc); } .c-spec { color: var(--spec); } .c-phase { color: var(--phase); } .c-echo { color: var(--echo); } .c-acc { color: var(--accent); }
+ul.clean { list-style: none; padding: 0; margin: 0 0 .6em; display: grid; gap: 0.45em; }
+
+/* instrument panel */
+.demo { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 14px 10px; display: grid; gap: 10px; }
+.demo-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.demo-h b { font-size: 0.82em; letter-spacing: 0.06em; color: var(--accent); }
+.tag { font-size: 0.68em; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; white-space: nowrap; }
+canvas { width: 100%; display: block; touch-action: none; }
+.h-s { height: 120px; } .h-m { height: 190px; } .h-l { height: 260px; } .h-xl { height: 330px; }
+@media (max-height: 760px) and (min-width: 921px) { .h-l { height: 210px; } .h-xl { height: 270px; } .h-m { height: 160px; } }
+.ctls { display: grid; gap: 6px; }
+.ctl { display: grid; grid-template-columns: 8.5em minmax(0, 1fr) 6.2em; align-items: center; gap: 10px; font-size: 0.8em; }
+.ctl label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ctl output { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 480px) { .ctl { grid-template-columns: 6.5em minmax(0, 1fr) 5em; } }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.readout { font-family: var(--f-mono); font-size: 0.78em; background: var(--panel); border-radius: 10px; padding: 8px 12px; font-variant-numeric: tabular-nums; line-height: 1.7; overflow-x: auto; }
+.readout b { color: var(--accent); font-weight: 600; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 4px 14px; font-size: 0.8em; cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+select { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 2px 6px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 3px 12px; font-size: 0.8em; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.numgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.4em, 1fr)); gap: 6px; font-size: 0.8em; }
+.numgrid label { display: grid; gap: 2px; }
+.numgrid input { width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 3px 6px; font-family: var(--f-mono); }
+table.rt { border-collapse: collapse; width: 100%; font-family: var(--f-mono); font-size: 0.76em; font-variant-numeric: tabular-nums; }
+table.rt th, table.rt td { border-bottom: 1px solid var(--line); padding: 3px 6px; text-align: right; }
+table.rt th { color: var(--muted); font-weight: 500; }
+
+/* cover & roadmap */
+.cover-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(18px, 3vw, 48px); align-items: center; min-height: 70vh; }
+.cover-grid > * { min-width: 0; }
+@media (max-width: 920px) { .cover-grid { grid-template-columns: minmax(0, 1fr); min-height: 0; } }
+.cover h1 { font-size: clamp(1.9em, 3.2vw, 2.9em); line-height: 1.2; margin: 0.4em 0 0.35em; font-weight: 900; text-wrap: balance; }
+.cover .sub { color: var(--accent); font-size: 1.05em; font-weight: 500; }
+.cover blockquote { margin: 1em 0; padding: 12px 18px; border-radius: 12px; background: var(--tint); font-size: 1.05em; }
+.pill { display: inline-block; font-size: 0.72em; font-weight: 700; padding: 2px 12px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); }
+.kbd { font-family: var(--f-mono); font-size: 0.85em; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; background: var(--panel); }
+.road { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 18px 0; }
+@media (max-width: 760px) { .road { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.step { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 14px 16px; cursor: pointer; display: grid; gap: 4px; }
+.step:hover { border-color: var(--accent); }
+.step .n { font-family: var(--f-mono); color: var(--accent); font-weight: 600; font-size: 0.85em; }
+.step .t { font-weight: 700; }
+.step .d { font-size: 0.8em; color: var(--muted); }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 0.8em; }
+.chips span { border: 1.5px solid currentColor; border-radius: 10px; padding: 2px 10px; }
+.reveal-line { transition: opacity .25s; }
+.reveal-line.off { opacity: 0.12; }
+
+/* bottom controls */
+.ctrl { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 8px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-top: 1px solid var(--line); background: var(--surface); }
+.ctrl .mid { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.nav { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 6px 18px; cursor: pointer; font-size: 0.85em; white-space: nowrap; }
+.nav.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+.nav:disabled { opacity: .4; cursor: default; }
+@media (max-width: 560px) { .hide-sm { display: none; } .ctrl .nav { padding: 6px 12px; } .ctrl .mid { flex-wrap: nowrap; } }
+
+/* notes drawer & overview */
+.notes { position: fixed; right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(64px + env(safe-area-inset-bottom, 0px)); width: min(560px, calc(100vw - 24px)); max-height: 56vh; overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 40px rgba(10, 20, 40, .25); padding: 14px 18px; z-index: 20; font-size: 0.8em; white-space: pre-wrap; line-height: 1.7; }
+.notes h3 { margin: 0 0 6px; font-size: 1em; color: var(--accent); white-space: normal; }
+.overview { position: fixed; inset: 0; background: var(--bg); z-index: 30; overflow: auto; padding-block: 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.overview .grid { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.overview button { text-align: left; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 12px 14px; cursor: pointer; display: grid; gap: 4px; }
+.overview button:hover, .overview button[aria-current="true"] { border-color: var(--accent); }
+.overview .k { font-family: var(--f-mono); font-size: 0.75em; color: var(--muted); }
+.overview .tt { font-weight: 700; font-size: 0.9em; }
+.overview .head { max-width: 1200px; margin: 0 auto 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+</style>
+
+<div class="app">
+  <header class="bar">
+    <span class="brand hide-sm">傅立葉分析與雷達</span>
+    <span class="chap" id="chap">導論</span>
+    <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+    <span class="count" id="count">1 / 22</span>
+  </header>
+
+  <main class="stage" id="stage">
+
+<!-- ================================================================ 01 -->
+<section class="slide cover" id="s1" data-chapter="導論" data-title="封面">
+  <div class="cover-grid">
+    <div>
+      <span class="pill">Chapters 1–4 · 第一次報告</span>
+      <h1>傅立葉分析：<br>從時間域、頻率域到雷達回波</h1>
+      <p class="sub">Fourier Series &amp; Fourier Transform — Chapters 1–4</p>
+      <blockquote>「複雜波形中，隱藏著哪些可觀測的物理資訊？」</blockquote>
+      <p class="muted">報告者：盧詠涵　系級：數學系資訊數學組　日期：2026/11/12</p>
+      <p class="small muted">操作：<span class="kbd">→</span> / <span class="kbd">空白</span> 下一頁，<span class="kbd">←</span> 上一頁，<span class="kbd">N</span> 講者備註，<span class="kbd">O</span> 總覽，<span class="kbd">F</span> 全螢幕。每頁右側的面板都可以操作。</p>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>時間域 → 頻率域</b><span class="tag">示意 · 以公式即時繪製</span></div>
+      <canvas id="c1" class="h-xl" aria-label="左：兩個正弦疊加的時間波形；右：對應的兩條頻率成分"></canvas>
+      <p class="small muted" style="margin:0">\(x(t)=\sin(2\pi\cdot100t)+0.5\sin(2\pi\cdot300t)\)。背景同心圓與目標點只是示意，不代表實測雷達資料。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 02 -->
+<section class="slide" id="s2" data-chapter="導論" data-title="研究動機與報告地圖" hidden>
+  <h2>研究動機與報告地圖</h2>
+  <div class="box big">核心問題：如何從複雜接收波形，辨認頻率與相位資訊？</div>
+  <div class="road">
+    <button class="step" data-go="s3"><span class="n">Ch.1</span><span class="t">時間域 vs. 頻率域</span><span class="d">同一訊號的兩種描述</span></button>
+    <button class="step" data-go="s5"><span class="n">Ch.2</span><span class="t">振幅、頻率、相位</span><span class="d">延遲為何變成相位</span></button>
+    <button class="step" data-go="s7"><span class="n">Ch.3</span><span class="t">傅立葉級數</span><span class="d">週期訊號 → 離散諧波</span></button>
+    <button class="step" data-go="s14"><span class="n">Ch.4</span><span class="t">傅立葉轉換</span><span class="d">更一般的訊號 → 連續頻譜</span></button>
+  </div>
+  <div class="box warn"><b class="c-echo">雷達關聯：</b>回波延遲 → 相位變化；運動 → 都卜勒頻移</div>
+  <p class="small muted">點任一章節卡片可直接跳到該章。本次只講數學工具的「為什麼」與「如何解讀」；DFT、FFT、FMCW 屬後續學習。</p>
+</section>
+
+<!-- ================================================================ 03 -->
+<section class="slide" id="s3" data-chapter="Ch.1 訊號與頻率" data-title="訊號與時間域" hidden>
+  <h2>訊號與時間域（Time Domain）</h2>
+  <div class="cols">
+    <div>
+      <p><b>定義：</b>訊號 \(x(t)\) 是隨時間變化的物理量或其模型（例如電壓）。</p>
+      <div class="eq">\[x(t)=\sin(2\pi\cdot 100\,t)+0.5\,\sin(2\pi\cdot 300\,t)\]</div>
+      <div class="box big">問題：看合成波形，能直接讀出 100 Hz 與 300 Hz 嗎？</div>
+      <div class="btns"><button class="btn" id="s3rev" aria-pressed="false">揭曉成分</button></div>
+      <p id="s3ans" class="small" hidden>成分是 <b class="c-sig">100 Hz（振幅 1）</b> 與 <b class="c-sig">300 Hz（振幅 0.5）</b>：20 ms 內分別是 2 個與 6 個週期。只看合成曲線很難一眼拆出來，下一頁換成頻率域來看。</p>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>拖動滑桿，看成分如何疊加</b><span class="tag">時間域 · 0–20 ms</span></div>
+      <canvas id="c3a" class="h-s"></canvas>
+      <canvas id="c3b" class="h-s"></canvas>
+      <canvas id="c3c" class="h-s"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s3a1">100 Hz 振幅</label><input type="range" id="s3a1" min="0" max="1.5" step="0.05" value="1"><output data-for="s3a1" data-d="2"></output></div>
+        <div class="ctl"><label for="s3a2">300 Hz 振幅</label><input type="range" id="s3a2" min="0" max="1.5" step="0.05" value="0.5"><output data-for="s3a2" data-d="2"></output></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 04 -->
+<section class="slide" id="s4" data-chapter="Ch.1 訊號與頻率" data-title="頻率域" hidden>
+  <h2>頻率域（Frequency Domain）</h2>
+  <div class="cols">
+    <div>
+      <p><b>頻率域：</b>訊號由哪些頻率組成、各自有多強？</p>
+      <div class="eq">\[x(t)=A_1\sin(2\pi f_1 t)+A_2\sin(2\pi f_2 t)\]</div>
+      <p class="c-spec"><b>預設：100 Hz（振幅 1）、300 Hz（振幅 0.5）</b></p>
+      <div class="box big c-acc">同一個訊號，可用不同觀點描述。</div>
+      <p class="small muted">右下圖是<b>單邊振幅譜（成分示意，傅立葉級數意義）</b>：高度是各正弦成分的振幅，不是連續時間 FT 的函數值；純正弦的 FT 是 Dirac delta，不能當成普通函數的高度。</p>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>改成分 → 兩個域同時更新</b><span class="tag">上：時間域　下：頻率域</span></div>
+      <canvas id="c4a" class="h-m"></canvas>
+      <canvas id="c4b" class="h-m"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s4a1">\(A_1\)（100 Hz）</label><input type="range" id="s4a1" min="0" max="1.5" step="0.05" value="1"><output data-for="s4a1" data-d="2"></output></div>
+        <div class="ctl"><label for="s4f2">\(f_2\)</label><input type="range" id="s4f2" min="200" max="500" step="100" value="300"><output data-for="s4f2" data-d="0" data-u=" Hz"></output></div>
+        <div class="ctl"><label for="s4a2">\(A_2\)</label><input type="range" id="s4a2" min="0" max="1.5" step="0.05" value="0.5"><output data-for="s4a2" data-d="2"></output></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 05 -->
+<section class="slide" id="s5" data-chapter="Ch.2 振幅與相位" data-title="正弦波的三個參數" hidden>
+  <h2>正弦波的三個參數</h2>
+  <div class="cols">
+    <div>
+      <div class="box eq">\[x(t)=A\cos(2\pi f t+\varphi)\]</div>
+      <ul class="clean">
+        <li>\(A\)：振幅 Amplitude</li>
+        <li>\(f\)：頻率 Frequency（Hz）；\(T=1/f\)</li>
+        <li>\(\varphi\)：相位 Phase（rad 或 °）</li>
+        <li>\(\omega=2\pi f\)：角頻率（rad/s）</li>
+      </ul>
+      <p class="small muted">振幅＝高低；頻率＝每秒震盪幾次；相位＝相對水平位置（需要參考波）。\(90^\circ=\pi/2\)。</p>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>一次只改一個參數</b><span class="tag">時間域 · 虛線＝參考 A=1, f=2 Hz, φ=0</span></div>
+      <canvas id="c5" class="h-l"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s5A">振幅 \(A\)</label><input type="range" id="s5A" min="0.2" max="2" step="0.05" value="1"><output data-for="s5A" data-d="2"></output></div>
+        <div class="ctl"><label for="s5f">頻率 \(f\)</label><input type="range" id="s5f" min="0.5" max="6" step="0.25" value="2"><output data-for="s5f" data-d="2" data-u=" Hz"></output></div>
+        <div class="ctl"><label for="s5p">相位 \(\varphi\)</label><input type="range" id="s5p" min="-180" max="180" step="5" value="0"><output data-for="s5p" data-d="0" data-u="°"></output></div>
+      </div>
+      <div class="readout" id="r5"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 06 -->
+<section class="slide" id="s6" data-chapter="Ch.2 振幅與相位" data-title="延遲為何對應相位差" hidden>
+  <h2>延遲為何對應相位差？</h2>
+  <div class="cols">
+    <div>
+      <div class="row"><b class="c-sig">發射</b><div class="eq">\[s(t)=A\cos(2\pi f t)\]</div></div>
+      <div class="row"><b class="c-echo">延遲</b><div class="eq">\[r(t)=A_r\cos\!\big[2\pi f\,(t-\tau)\big]\]</div></div>
+      <div class="row"><b>展開</b><div class="eq">\[r(t)=A_r\cos(2\pi f t-2\pi f\tau)\]</div></div>
+      <div class="box key"><div class="row"><b class="c-acc">結論</b><div class="eq">\[\Delta\varphi=-2\pi f\tau \pmod{2\pi}\]</div></div></div>
+      <p class="big">時間延遲在固定頻率上表現為相位差。</p>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>改延遲 τ，看相位怎麼走</b><span class="tag">時間域 ＋ 相位圓</span></div>
+      <canvas id="c6a" class="h-m"></canvas>
+      <canvas id="c6b" class="h-m"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s6f">頻率 \(f\)</label><input type="range" id="s6f" min="1" max="10" step="0.5" value="5"><output data-for="s6f" data-d="1" data-u=" Hz"></output></div>
+        <div class="ctl"><label for="s6t">延遲 \(\tau\)</label><input type="range" id="s6t" min="0" max="0.6" step="0.005" value="0.04"><output data-for="s6t" data-d="3" data-u=" s"></output></div>
+      </div>
+      <div class="btns"><button class="btn" id="s6plus">τ 加一個週期 1/f</button><button class="btn" id="s6reset">回到 τ = 0.04 s</button></div>
+      <div class="readout" id="r6"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 07 -->
+<section class="slide" id="s7" data-chapter="Ch.3 傅立葉級數" data-title="週期函數、基頻與諧波" hidden>
+  <h2>週期函數、基頻與諧波</h2>
+  <div class="cols">
+    <div>
+      <div class="row"><b>週期定義</b><div class="eq">\[x(t+T_0)=x(t)\]</div></div>
+      <div class="row"><b>基頻</b><div class="eq">\[f_0=\frac{1}{T_0},\qquad \omega_0=\frac{2\pi}{T_0}\]</div></div>
+      <div class="row"><b>第 \(n\) 次諧波</b><div class="eq">\[f_n=n\,f_0\]</div></div>
+      <p>示例 \(f_0\) = 100 Hz：第 1、2、3 次諧波 = 100、200、300 Hz。</p>
+      <div class="box note big">注意：某些諧波的係數可以是零。</div>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>改基頻，看諧波格點移動</b><span class="tag">訊號：sin(ω₀t)+0.5 sin(3ω₀t)</span></div>
+      <canvas id="c7a" class="h-m"></canvas>
+      <canvas id="c7b" class="h-s"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s7f">基頻 \(f_0\)</label><input type="range" id="s7f" min="50" max="250" step="10" value="100"><output data-for="s7f" data-d="0" data-u=" Hz"></output></div>
+      </div>
+      <div class="btns"><button class="btn" id="s7fill" aria-pressed="false">標出這個訊號的非零係數</button></div>
+      <div class="readout" id="r7"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 08 -->
+<section class="slide" id="s8" data-chapter="Ch.3 傅立葉級數" data-title="傅立葉級數的基本形式" hidden>
+  <h2>傅立葉級數的基本形式</h2>
+  <div class="cols">
+    <div>
+      <div class="eq">\[x(t)\sim a_0+\sum_{n=1}^{\infty}\Big[a_n\cos(n\omega_0 t)+b_n\sin(n\omega_0 t)\Big]\]</div>
+      <ul class="clean">
+        <li>\(a_0\)：直流分量（平均值；0 Hz）</li>
+        <li>\(a_n\)、\(b_n\)：各諧波在 cos、sin 基底上的係數</li>
+      </ul>
+      <div class="box big">主結論：週期波形 = 不同諧波之和（在適當收斂意義下）</div>
+      <p class="small muted">用「~」不用無條件等號：在連續點收斂到訊號，在跳躍點收斂到左右極限平均。</p>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>增加項數 N，逼近方波</b><span class="tag">時間域 · ω₀=1, T₀=2π</span></div>
+      <div class="eq small">\[S_N(t)=\frac{4}{\pi}\sum_{k=0}^{N-1}\frac{\sin[(2k+1)t]}{2k+1}\]</div>
+      <canvas id="c8" class="h-l"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s8N">項數 \(N\)</label><input type="range" id="s8N" min="1" max="60" step="1" value="3"><output data-for="s8N" data-d="0"></output></div>
+      </div>
+      <div class="btns"><button class="btn" id="s8play" aria-pressed="false">▶ 自動增加 N</button><button class="btn" id="s8terms" aria-pressed="false">顯示各分量</button></div>
+      <div class="readout" id="r8"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 09 -->
+<section class="slide" id="s9" data-chapter="Ch.3 傅立葉級數" data-title="直流分量" hidden>
+  <h2>直流分量（DC Component）</h2>
+  <div class="cols">
+    <div>
+      <div class="eq">\[a_0=\frac{1}{T_0}\int_0^{T_0}x(t)\,dt\]</div>
+      <p>例：</p>
+      <div class="eq">\[x(t)=3+2\sin(2\pi\cdot 100\,t)\;\Longrightarrow\; a_0=3\]</div>
+      <div class="box note big c-dc">DC = 0 Hz = 一週期平均值</div>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>改常數偏移 c，數值積分求平均</b><span class="tag">時間域 · 0–20 ms</span></div>
+      <canvas id="c9" class="h-l"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s9c">常數 \(c\)</label><input type="range" id="s9c" min="-3" max="4" step="0.1" value="3"><output data-for="s9c" data-d="1"></output></div>
+        <div class="ctl"><label for="s9w">積分長度 / \(T_0\)</label><input type="range" id="s9w" min="0.25" max="2" step="0.05" value="1"><output data-for="s9w" data-d="2"></output></div>
+      </div>
+      <div class="readout" id="r9"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 10 -->
+<section class="slide" id="s10" data-chapter="Ch.3 傅立葉級數" data-title="函數正交性" hidden>
+  <h2>函數正交性（Orthogonality）</h2>
+  <div class="cols">
+    <div>
+      <div class="row"><b>定義</b><div class="eq">\[\langle u,v\rangle=\int_0^{T_0}u(t)\,v(t)\,dt\]</div></div>
+      <div class="row"><b>正交</b><div class="eq">\[\langle u,v\rangle=0\]</div></div>
+      <p><b>三角基底正交：</b></p>
+      <div class="eq">\[\int_0^{T_0}\cos(m\omega_0 t)\cos(n\omega_0 t)\,dt=\begin{cases}0, & m\neq n\\[2pt] \dfrac{T_0}{2}, & m=n\geq 1\end{cases}\]</div>
+      <div class="box big">結論：正交性使我們能選出特定頻率。</div>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>選兩個基底，看乘積面積</b><span class="tag">時間域 · 一個完整週期</span></div>
+      <div class="chips" style="gap:14px">
+        <span style="border:0;padding:0">\(u=\)</span><select id="s10ut" aria-label="u 的型式"><option value="cos">cos</option><option value="sin">sin</option></select>
+        <span style="border:0;padding:0">\(m=\)</span><select id="s10m" aria-label="m"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+        <span style="border:0;padding:0">\(v=\)</span><select id="s10vt" aria-label="v 的型式"><option value="cos">cos</option><option value="sin">sin</option></select>
+        <span style="border:0;padding:0">\(n=\)</span><select id="s10n" aria-label="n"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select>
+      </div>
+      <canvas id="c10a" class="h-m"></canvas>
+      <canvas id="c10b" class="h-m"></canvas>
+      <div class="readout" id="r10"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 11 -->
+<section class="slide" id="s11" data-chapter="Ch.3 傅立葉級數" data-title="正交性如何導出係數" hidden>
+  <h2>正交性如何導出係數？（關鍵推導）</h2>
+  <div class="cols">
+    <div>
+      <p><b class="c-acc">①</b> 級數形式</p>
+      <div class="eq">\[x(t)=a_0+\sum_{k=1}^{\infty}\Big[a_k\cos(k\omega_0 t)+b_k\sin(k\omega_0 t)\Big]\]</div>
+      <p><b class="c-acc">②</b> 兩邊乘 \(\cos(n\omega_0 t)\)，於 \([0,T_0]\)（完整基本週期）積分。</p>
+      <div class="box note"><p style="margin:0"><b class="c-dc">③</b> 因正交性，<b>只留下</b> \(a_n\cdot T_0/2\)：</p>
+        <div class="eq">\[\int_0^{T_0}x(t)\cos(n\omega_0 t)\,dt=a_n\cdot\frac{T_0}{2}\]</div></div>
+      <p style="margin:0"><b class="c-acc">④</b> 結果：</p>
+      <div class="eq">\[a_n=\frac{2}{T_0}\int_0^{T_0}x(t)\cos(n\omega_0 t)\,dt\]</div><div class="eq">\[b_n=\frac{2}{T_0}\int_0^{T_0}x(t)\sin(n\omega_0 t)\,dt\]</div>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>係數萃取器</b><span class="tag">例：x(t)=2+3cos(ω₀t)+4sin(3ω₀t)</span></div>
+      <canvas id="c11a" class="h-s"></canvas>
+      <canvas id="c11b" class="h-m"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s11n">諧波 \(n\)</label><input type="range" id="s11n" min="1" max="5" step="1" value="1"><output data-for="s11n" data-d="0"></output></div>
+        <div class="ctl"><label for="s11L">積分長度 / \(T_0\)</label><input type="range" id="s11L" min="0.3" max="1.5" step="0.05" value="1"><output data-for="s11L" data-d="2"></output></div>
+      </div>
+      <div class="btns"><span class="seg" role="group" aria-label="基底"><button id="s11cos" aria-pressed="true">乘 cos → aₙ</button><button id="s11sin" aria-pressed="false">乘 sin → bₙ</button></span></div>
+      <div class="readout" id="r11"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 12 -->
+<section class="slide" id="s12" data-chapter="Ch.3 傅立葉級數" data-title="振幅與相位怎麼從係數得到" hidden>
+  <h2>振幅與相位怎麼從係數得到？</h2>
+  <div class="cols">
+    <div>
+      <div class="eq">\[a_n\cos(n\omega_0 t)+b_n\sin(n\omega_0 t)=A_n\cos(n\omega_0 t+\varphi_n)\]</div>
+      <p>由和角公式：</p>
+      <div class="eq">\[a_n=A_n\cos\varphi_n,\qquad b_n=-A_n\sin\varphi_n\]</div>
+      <div class="eq">\[A_n=\sqrt{a_n^2+b_n^2},\qquad \varphi_n=\operatorname{atan2}(-b_n,\,a_n)\quad(A_n>0)\]</div>
+      <div class="box big">每個頻率成分都能用「頻率＋振幅＋相位」描述。</div>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>拖動點 \((a_n,-b_n)\)</b><span class="tag">注意縱軸是 −bₙ</span></div>
+      <canvas id="c12a" class="h-l" aria-label="可拖動的係數平面"></canvas>
+      <canvas id="c12b" class="h-s"></canvas>
+      <div class="readout" id="r12"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 13 -->
+<section class="slide" id="s13" data-chapter="Ch.3 傅立葉級數" data-title="完整例子與雙頻譜" hidden>
+  <h2>完整例子與雙頻譜</h2>
+  <div class="cols">
+    <div>
+      <div class="eq">\[x(t)=2+3\cos(2\pi\cdot 100\,t)+4\sin(2\pi\cdot 300\,t)\]</div>
+      <div class="eq">\[f_0=100\ \mathrm{Hz};\quad a_0=2,\ a_1=3,\ b_3=4\]</div>
+      <p><b class="c-spec">單邊振幅頻譜：</b>0 Hz→2；100 Hz→3；300 Hz→4</p>
+      <p><b class="c-phase">相位頻譜：</b>100 Hz→0°；300 Hz→−90°</p>
+      <p class="small muted">\(\sin\theta=\cos(\theta-90^\circ)\)，所以 300 Hz 相位是 −90°。第三諧波振幅 4，但 \(a_3=0\)（4 在 \(b_3\)）。</p>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>改係數，三張圖同步</b><span class="tag">單邊 Fourier-series 譜，不是雙邊 FT</span></div>
+      <div class="numgrid">
+        <label>a₀<input type="number" id="k_a0" value="2" step="0.5"></label>
+        <label>a₁<input type="number" id="k_a1" value="3" step="0.5"></label>
+        <label>b₁<input type="number" id="k_b1" value="0" step="0.5"></label>
+        <label>a₂<input type="number" id="k_a2" value="0" step="0.5"></label>
+        <label>b₂<input type="number" id="k_b2" value="0" step="0.5"></label>
+        <label>a₃<input type="number" id="k_a3" value="0" step="0.5"></label>
+        <label>b₃<input type="number" id="k_b3" value="4" step="0.5"></label>
+      </div>
+      <canvas id="c13a" class="h-s"></canvas>
+      <canvas id="c13b" class="h-s"></canvas>
+      <canvas id="c13c" class="h-s"></canvas>
+      <div class="btns"><button class="btn" id="s13reset">回到投影片的例子</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 14 -->
+<section class="slide" id="s14" data-chapter="Ch.3 → Ch.4" data-title="週期訊號的限制" hidden>
+  <h2>週期訊號的限制</h2>
+  <div class="cols">
+    <div>
+      <div class="box"><b>Fourier Series：</b>週期訊號、離散諧波 \(f_n=n/T_0\)</div>
+      <div class="box warn"><b>真實量測：</b>有限時間的脈衝或回波未必週期重複</div>
+      <p class="big">問題：非週期訊號能不能描述頻率成分？</p>
+      <p class="big c-acc">→ 回答：Fourier Transform（傅立葉轉換）</p>
+      <p class="small muted">非週期不代表「沒有頻率」，而是不能用有限基本週期對應的離散諧波描述整條時間軸。</p>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>把週期拉長：脈衝列 → 單一脈衝</b><span class="tag">時間域 · 示意</span></div>
+      <canvas id="c14" class="h-l"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s14T">週期 \(T_0\)</label><input type="range" id="s14T" min="1.5" max="20" step="0.5" value="3"><output data-for="s14T" data-d="1"></output></div>
+      </div>
+      <div class="readout" id="r14"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 15 -->
+<section class="slide" id="s15" data-chapter="Ch.4 傅立葉轉換" data-title="從級數到轉換（推導 I）" hidden>
+  <h2>從級數到轉換（推導 I）</h2>
+  <div class="cols">
+    <div>
+      <div class="row"><b>複數形式 FS</b><div class="eq">\[x_T(t)=\sum_{n\in\mathbb{Z}}c_n\,e^{\,j2\pi f_n t},\quad f_n=\frac{n}{T}\]</div></div>
+      <div class="row"><b>係數</b><div class="eq">\[c_n=\frac{1}{T}\int_{-T/2}^{T/2}x_T(t)\,e^{-j2\pi f_n t}\,dt\]</div></div>
+      <div class="row"><b>定義</b><div class="eq">\[\Delta f=\frac{1}{T}\]</div></div><div class="row"><b>有限區間頻譜</b><div class="eq">\[X_T(f)=\int_{-T/2}^{T/2}x(t)\,e^{-j2\pi f t}\,dt\]</div></div>
+      <div class="box key"><div class="row"><b class="c-acc">得</b><div class="eq">\[c_n=X_T(f_n)\,\Delta f\]</div></div></div>
+      <p class="small c-echo"><b>注意：</b>\(c_n\) 與 \(X_T(f_n)\) 不同，兩者差一個 \(\Delta f\)。</p>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>T 變大：格點變密，cₙ 變小</b><span class="tag">頻率域 · 例：寬 1 s 矩形脈衝</span></div>
+      <canvas id="c15" class="h-xl"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s15T">週期 \(T\)</label><input type="range" id="s15T" min="0" max="4" step="1" value="1"><output id="o15T"></output></div>
+        <div class="ctl"><label for="s15n">選第 \(n\) 項</label><input type="range" id="s15n" min="0" max="6" step="1" value="1"><output data-for="s15n" data-d="0"></output></div>
+      </div>
+      <div class="readout" id="r15"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 16 -->
+<section class="slide" id="s16" data-chapter="Ch.4 傅立葉轉換" data-title="從級數到轉換（推導 II）" hidden>
+  <h2>從級數到轉換（推導 II）</h2>
+  <div class="cols">
+    <div>
+      <p><b>代回級數：</b></p>
+      <div class="eq">\[x_T(t)=\sum_{n\in\mathbb{Z}}X_T(f_n)\,e^{\,j2\pi f_n t}\,\Delta f\]</div>
+      <p>當 \(T\to\infty\)，\(\Delta f\to 0\)，離散頻率變密集</p>
+      <p><b>黎曼和 → 積分：</b></p>
+      <div class="eq">\[x(t)=\int_{-\infty}^{\infty}X(f)\,e^{\,j2\pi f t}\,df\]</div><p style="margin:0"><b>其中：</b></p><div class="eq">\[X(f)=\int_{-\infty}^{\infty}x(t)\,e^{-j2\pi f t}\,dt\]</div>
+      <p class="small muted">形式上的極限；嚴謹成立需要適當的收斂條件。\(c_n\) 本身會隨 \(\Delta f\) 趨近 0，連續頻譜描述的是 \(c_n/\Delta f\)。</p>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>黎曼和長條 ↔ 時間上的週期副本</b><span class="tag">寬 1 s 矩形脈衝</span></div>
+      <canvas id="c16a" class="h-m"></canvas>
+      <canvas id="c16b" class="h-s"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s16T">週期 \(T\)</label><input type="range" id="s16T" min="1.5" max="40" step="0.5" value="4"><output data-for="s16T" data-d="1" data-u=" s"></output></div>
+      </div>
+      <div class="readout" id="r16"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 17 -->
+<section class="slide" id="s17" data-chapter="Ch.4 傅立葉轉換" data-title="傅立葉轉換的定義與物理意義" hidden>
+  <h2>傅立葉轉換的定義與物理意義</h2>
+  <div class="cols">
+    <div>
+      <div class="row"><b class="c-spec">Forward FT</b><div class="eq">\[X(f)=\int_{-\infty}^{\infty}x(t)\,e^{-j2\pi f t}\,dt\]</div></div>
+      <div class="row"><b class="c-sig">Inverse FT</b><div class="eq">\[x(t)=\int_{-\infty}^{\infty}X(f)\,e^{\,j2\pi f t}\,df\]</div></div>
+      <div class="row"><b>Euler 公式</b><div class="eq">\[e^{\,j\theta}=\cos\theta+j\sin\theta\]</div></div>
+      <div class="row"><b>極座標形式</b><div class="eq">\[X(f)=|X(f)|\,e^{\,j\varphi(f)}\]</div></div>
+      <div class="box"><b>解讀：</b>\(|X(f)|\) 描述頻率成分大小；\(\varphi(f)\) 描述相位；\(X(f)\) 通常是<b>複數</b>函數。</div>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>某一頻率 f₁ 的 X(f₁) 是複平面上的向量</b><span class="tag">例：寬 1 s 脈衝，延遲 τ</span></div>
+      <div class="chips"><span class="c-sig">時間域 x(t)</span><span style="border:0">⇄ 正轉換 / 逆轉換 ⇄</span><span class="c-spec">頻率域 X(f)</span></div>
+      <canvas id="c17a" class="h-l"></canvas>
+      <canvas id="c17b" class="h-s"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s17f">頻率 \(f_1\)</label><input type="range" id="s17f" min="-3" max="3" step="0.02" value="0.4"><output data-for="s17f" data-d="2" data-u=" Hz"></output></div>
+        <div class="ctl"><label for="s17t">延遲 \(\tau\)</label><input type="range" id="s17t" min="0" max="1" step="0.01" value="0.25"><output data-for="s17t" data-d="2" data-u=" s"></output></div>
+      </div>
+      <div class="readout" id="r17"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 18 -->
+<section class="slide" id="s18" data-chapter="Ch.4 傅立葉轉換" data-title="重要性質與矩形脈衝例子" hidden>
+  <h2>重要性質與矩形脈衝例子</h2>
+  <div class="cols">
+    <div>
+      <div class="row"><b>時間平移</b><div class="eq">\[x(t-\tau)\;\longleftrightarrow\;X(f)\,e^{-j2\pi f\tau}\]</div></div>
+      <div class="row"><b>矩形脈衝</b><div class="eq">\[x(t)=\begin{cases}1, & |t|\leq T/2\\ 0, & |t|>T/2\end{cases}\]</div></div>
+      <p style="margin:0"><b>傅立葉轉換：</b></p><div class="eq">\[X(f)=\int_{-T/2}^{T/2}e^{-j2\pi f t}\,dt=T\,\operatorname{sinc}(fT)\]</div><div class="row"><b>定義</b><div class="eq">\[\operatorname{sinc}(u)=\frac{\sin(\pi u)}{\pi u},\quad \operatorname{sinc}(0)=1\]</div></div>
+      <div class="box big">時間上有限的脈衝，在頻率上具有連續的頻譜。</div>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>改寬度 T 與延遲 τ</b><span class="tag">純延遲只改相位，不改 |X(f)|</span></div>
+      <canvas id="c18a" class="h-s"></canvas>
+      <canvas id="c18b" class="h-m"></canvas>
+      <canvas id="c18c" class="h-s"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s18T">脈衝寬 \(T\)</label><input type="range" id="s18T" min="0.4" max="3" step="0.05" value="1"><output data-for="s18T" data-d="2" data-u=" s"></output></div>
+        <div class="ctl"><label for="s18t">延遲 \(\tau\)</label><input type="range" id="s18t" min="-1" max="1" step="0.02" value="0"><output data-for="s18t" data-d="2" data-u=" s"></output></div>
+      </div>
+      <div class="readout" id="r18"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 19 -->
+<section class="slide" id="s19" data-chapter="總結" data-title="總結：由傅立葉分析走向雷達" hidden>
+  <h2>總結：由傅立葉分析走向雷達</h2>
+  <div class="cols">
+    <div>
+      <ul class="clean">
+        <li><b>時間域：</b>訊號隨時間的變化</li>
+        <li><b>頻率域：</b>各頻率的振幅與相位</li>
+        <li><b>傅立葉級數：</b>週期訊號 → 離散諧波</li>
+        <li><b>傅立葉轉換：</b>非週期／一般訊號 → 連續頻譜（在適當條件下）</li>
+        <li class="c-echo"><b>雷達連結：</b>回波延遲 → 相位因子；運動 → 都卜勒頻移</li>
+      </ul>
+      <div class="box"><b class="c-acc">展望：</b>後續學習 DFT、FFT 與 FMCW 雷達</div>
+      <div class="chips"><span class="c-sig">Time</span>→<span class="c-acc">Fourier</span>→<span class="c-spec">Spectrum</span>→<span class="c-echo">Radar interpretations</span></div>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>單站雷達：延遲與都卜勒</b><span class="tag">公式換算示意 · 非量測結果</span></div>
+      <canvas id="c19" class="h-l"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s19R">距離 \(R\)</label><input type="range" id="s19R" min="1" max="150" step="1" value="30"><output data-for="s19R" data-d="0" data-u=" m"></output></div>
+        <div class="ctl"><label for="s19v">徑向速度 \(v_r\)</label><input type="range" id="s19v" min="-30" max="30" step="0.5" value="10"><output data-for="s19v" data-d="1" data-u=" m/s"></output></div>
+        <div class="ctl"><label for="s19l">波長 \(\lambda\)（示意）</label><input type="range" id="s19l" min="3" max="100" step="1" value="30"><output data-for="s19l" data-d="0" data-u=" mm"></output></div>
+      </div>
+      <div class="readout" id="r19"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ A1 -->
+<section class="slide" id="s20" data-chapter="Appendix A1" data-title="三角函數正交性的正式證明" hidden>
+  <h2>三角函數正交性的正式證明</h2>
+  <div class="btns" style="margin-bottom:10px"><button class="btn" data-rev="s20" data-act="next">下一步</button><button class="btn" data-rev="s20" data-act="all">全部顯示</button><button class="btn" data-rev="s20" data-act="reset">重來</button></div>
+  <div class="reveal-line"><p style="margin:0"><b>積化和差：</b></p><div class="eq">\[\cos A\cos B=\tfrac12\big[\cos(A-B)+\cos(A+B)\big],\qquad \sin A\sin B=\tfrac12\big[\cos(A-B)-\cos(A+B)\big]\]</div></div>
+  <div class="reveal-line"><div class="eq">\[\int_0^{T_0}\cos(k\omega_0 t)\,dt=\left[\frac{\sin(k\omega_0 t)}{k\omega_0}\right]_0^{T_0}=\frac{\sin(2\pi k)}{k\omega_0}=0\qquad (k\in\mathbb{Z},\ k\neq 0)\]</div></div>
+  <div class="reveal-line"><div class="eq">\[\int_0^{T_0}\cos^2(n\omega_0 t)\,dt=\int_0^{T_0}\frac{1+\cos(2n\omega_0 t)}{2}\,dt=\frac{T_0}{2}\qquad (n\geq 1)\]</div></div>
+  <div class="reveal-line"><p style="margin:0"><b>因此</b>（\(m\neq n\)，\(m,n\geq1\)，故 \(m-n\)、\(m+n\) 都是非零整數）：</p><div class="eq">\[\int_0^{T_0}\cos(m\omega_0 t)\cos(n\omega_0 t)\,dt=\tfrac12\int_0^{T_0}\cos\big((m-n)\omega_0 t\big)dt+\tfrac12\int_0^{T_0}\cos\big((m+n)\omega_0 t\big)dt=0\]</div></div>
+  <div class="reveal-line box"><b>結論：</b>不同正整數諧波正交；相同諧波平方積分是 \(T_0/2\)（限定積分一個完整基本週期、正整數索引）。</div>
+</section>
+
+<!-- ================================================================ A2 -->
+<section class="slide" id="s21" data-chapter="Appendix A2" data-title="係數推導及 L² 意義" hidden>
+  <h2>係數推導及 L² 意義</h2>
+  <div class="btns" style="margin-bottom:10px"><button class="btn" data-rev="s21" data-act="next">下一步</button><button class="btn" data-rev="s21" data-act="all">全部顯示</button><button class="btn" data-rev="s21" data-act="reset">重來</button></div>
+  <div class="reveal-line"><p style="margin:0"><b>有限部分和：</b></p><div class="eq">\[S_N(t)=a_0+\sum_{k=1}^{N}\Big[a_k\cos(k\omega_0 t)+b_k\sin(k\omega_0 t)\Big]\]</div></div>
+  <div class="reveal-line"><p style="margin:0"><b>正交性（有限和可逐項積分）：</b></p><div class="eq">\[\big\langle S_N,\cos(n\omega_0 t)\big\rangle=a_n\,\frac{T_0}{2}\qquad (N\geq n)\]</div></div>
+  <div class="reveal-line"><p style="margin:0"><b>若</b> \(S_N\to x\) in \(L^2\)，<b>由 Cauchy–Schwarz：</b></p><div class="eq">\[\big|\langle S_N-x,\cos(n\omega_0 t)\rangle\big|\leq\|S_N-x\|_2\,\|\cos(n\omega_0 t)\|_2\;\xrightarrow[N\to\infty]{}\;0\]</div></div>
+  <div class="reveal-line"><p style="margin:0"><b>故：</b></p><div class="eq">\[a_n=\frac{2}{T_0}\big\langle x,\cos(n\omega_0 t)\big\rangle\]</div></div>
+  <div class="reveal-line box"><b>重點：</b>不能無條件交換無限和與積分；先取有限部分和，再用內積連續性取極限。</div>
+</section>
+
+<!-- ================================================================ A3 -->
+<section class="slide" id="s22" data-chapter="Appendix A3" data-title="雷達限制與常見追問" hidden>
+  <h2>雷達限制與常見追問</h2>
+  <div class="cols">
+    <div>
+      <p style="margin:0"><b>單站雷達傳播時間：</b></p>
+      <div class="eq">\[\tau=\frac{2R}{c}\quad\Longrightarrow\quad R=\frac{c\,\tau}{2}\]</div>
+      <p style="margin:0"><b>連續波回波相位：</b></p>
+      <div class="eq">\[\Delta\varphi=-2\pi f_c\,\tau=-\frac{4\pi R}{\lambda}\pmod{2\pi}\]</div>
+      <p style="margin:0"><b>都卜勒近似：</b></p>
+      <div class="eq">\[|f_D|\approx\frac{2\,|v_r|}{\lambda}\qquad (|v_r|\ll c)\]</div>
+      <div class="box warn big">注意：單頻相位有模糊性；FT 不自動給出距離。</div>
+    </div>
+    <div class="demo">
+      <div class="demo-h"><b>相位模糊：不同 R，同一個相位</b><span class="tag">以 λ 為單位 · 示意</span></div>
+      <canvas id="c22a" class="h-m"></canvas>
+      <canvas id="c22b" class="h-s"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="s22R">距離 \(R/\lambda\)</label><input type="range" id="s22R" min="0" max="3" step="0.01" value="0.62"><output data-for="s22R" data-d="2"></output></div>
+      </div>
+      <div class="readout" id="r22"></div>
+    </div>
+  </div>
+</section>
+
+  </main>
+
+  <nav class="ctrl" aria-label="投影片控制">
+    <button class="nav" id="prev">← 上一頁</button>
+    <div class="mid">
+      <button class="nav" id="btnOverview">總覽 <span class="hide-sm kbd">O</span></button>
+      <button class="nav" id="btnNotes" aria-pressed="false">講者備註 <span class="hide-sm kbd">N</span></button>
+      <button class="nav hide-sm" id="btnFs">全螢幕 <span class="kbd">F</span></button>
+    </div>
+    <button class="nav primary" id="next">下一頁 →</button>
+  </nav>
+
+  <aside class="notes" id="notes" hidden aria-live="polite"><h3 id="notesTitle"></h3><div id="notesBody"></div></aside>
+  <div class="overview" id="overview" hidden>
+    <div class="head"><b>全部 22 頁</b><button class="nav" id="ovClose">關閉</button></div>
+    <div class="grid" id="ovGrid"></div>
+  </div>
+</div>
+
+<script id="notes-data" type="application/json">["【時間】約 0:30\n【講法】各位老師好，今天報告的主題是「傅立葉分析：從時間域、頻率域到雷達回波」，範圍是 Chapter 1–4：訊號與頻率、振幅與相位、傅立葉級數、傅立葉轉換。報告先介紹數學基礎：時間域與頻率域、波形的振幅與相位、傅立葉級數和傅立葉轉換；最後說明它們如何幫助理解雷達的回波。\n【核心問題】為什麼雷達不能只看原始波形？\n【圖說】右側主視覺：左邊是 sin(2π·100t)+0.5 sin(2π·300t) 的時間波形（以公式精確繪製），右邊是同一訊號的兩條成分線（100 Hz、300 Hz）。背景的雷達同心圓與目標點只是示意，並不代表量到實際雷達訊號。\n【常見誤解】這份報告是理論與示意，沒有執行真正的雷達量測。\n【銜接下一頁】先說明為什麼要研究這個問題，以及今天報告的地圖。", "【時間】約 0:50\n【講法】核心問題是：如何從複雜的接收波形中，辨認出頻率與相位資訊？我分四步走：Ch.1 時間域與頻率域兩種觀點；Ch.2 正弦波的振幅、頻率、相位；Ch.3 傅立葉級數處理週期訊號；Ch.4 傅立葉轉換處理更一般的訊號。最後連到雷達：回波的延遲會變成相位變化，目標運動會造成都卜勒頻移。\n【定位】此次主要講數學工具的「為什麼」及「如何解讀」。實際雷達系統的 FFT、FMCW 與距離–速度圖屬後續學習，不是此次聲稱已掌握的內容。\n【常見誤解】「傅立葉轉換直接輸出距離」——不是，後面 Slide 19 與 Appendix A3 會說明。\n【銜接下一頁】先從最基本的「訊號」與「時間域」開始。", "【時間】約 1:00\n【講法】訊號 x(t) 是隨時間變化的物理量或其模型，例如電壓。這裡的例子是 x(t)=sin(2π·100t)+0.5 sin(2π·300t)。右圖三層共用時間軸：第一條在 20 ms 內有 2 個週期（100 Hz），第二條有 6 個週期（300 Hz、振幅 0.5），第三條是兩者相加。\n【重點】疊加後的時間曲線不容易一眼拆出成分。時間域強調「何時／如何變化」。\n【常見誤解】時間域不是「錯的」表示法，它只是回答不同的問題。\n【銜接下一頁】那麼，有沒有一種觀點能直接看出「有哪些頻率、各多強」？——頻率域。", "【時間】約 1:05\n【講法】頻率域問的是：訊號由哪些頻率組成、各自有多強？同一個 x(t)，在頻率域只有兩條線：100 Hz 振幅 1、300 Hz 振幅 0.5。\n【圖的標示】右圖是「單邊振幅譜（依原正弦振幅正規化）」——也就是傅立葉級數意義下的成分示意，不是直接繪製連續時間 FT 的一般函數。連續時間 FT 對純正弦會得到 Dirac delta，不能把 delta 當成普通函數的高度。\n【重點】時間域不是錯的，只是不同表示方式回答不同問題；頻率域更容易找出週期成分。\n【常見誤解】把右圖的「高度」當成 FT 函數值；這裡的高度是各正弦成分的振幅。\n【銜接下一頁】要描述一個頻率成分，需要哪些參數？進入 Ch.2：振幅、頻率、相位。", "【時間】約 1:00\n【講法】正弦波 x(t)=A cos(2πft+φ) 由三個參數決定：A 振幅、f 頻率（Hz，週期 T=1/f）、φ 相位（rad 或 °）；ω=2πf 是角頻率（rad/s）。\n右圖三個分圖每次只改變一個參數：振幅＝高低；頻率＝每秒震盪幾次；相位＝相對的水平位置。\n【提醒】相位要有意義，需要一個參考點或參考波。弧度與角度勿混寫：90° = π/2。\n【常見誤解】相位不是「振幅的一種」；φ=90° 的 cos 波等於把波形往左移四分之一週期（cos(θ+π/2) = −sin θ）。\n【銜接下一頁】相位為什麼重要？因為「時間延遲」在固定頻率上會變成相位差——這正是雷達回波的關鍵。", "【時間】約 1:15\n【講法】發射 s(t)=A cos(2πft)；若回波延遲 τ，接收 r(t)=A_r cos[2πf(t−τ)]。展開得 r(t)=A_r cos(2πft−2πfτ)，和發射波相比，多了一個相位 Δφ=−2πfτ (mod 2π)。所以：時間延遲在固定頻率上表現為相位差。\n【數值例（圖）】f=5 Hz、τ=0.04 s：Δφ = −2π·5·0.04 = −0.4π rad = −72°。圖中紅色曲線相對藍色向右平移 τ。\n【補充】A_r 可與 A 不同，因為有路徑衰減；這裡只看時間延遲造成的相位效果（圖中取 A_r=0.7 只是示意）。\n【常見誤解】mod 2π 很關鍵：相位具有週期模糊性，τ 與 τ+1/f 會給出相同相位，所以單看一個頻率的相位，無法唯一決定延遲。這為雷達連結埋下伏筆（見 Appendix A3）。\n【銜接下一頁】接下來進入 Ch.3：如果訊號是週期的，能不能把它拆成許多正弦的和？", "【時間】約 1:05\n【講法】週期訊號滿足 x(t+T₀)=x(t)，最小的正數 T₀ 稱為基本週期；基頻 f₀=1/T₀，角頻率 ω₀=2π/T₀。第 n 次諧波的頻率是 fₙ=n f₀。例如 f₀=100 Hz，第 1、2、3 次諧波是 100、200、300 Hz。\n【圖說】上圖是 sin(2π·100t)+0.5 sin(2π·300t)，T₀=10 ms，標出兩個相鄰週期。下圖用空心圓只標出「可能」的諧波位置——不是每一項都一定有訊號。以這個例子來說，200 Hz 與 400 Hz 的係數其實為 0。\n【補充】可連結高中固定端弦的諧波概念，但訊號處理中的諧波不必然來自真正的弦，只是週期訊號頻率的整數倍。\n【常見誤解】「週期訊號一定有所有諧波」——錯，係數可以為零。\n【銜接下一頁】那麼一個週期訊號要怎麼寫成這些諧波的和？這就是傅立葉級數。", "【時間】約 1:15\n【講法】傅立葉級數寫成 x(t) ~ a₀ + Σₙ₌₁^∞ [aₙ cos(nω₀t) + bₙ sin(nω₀t)]。a₀ 是直流分量，也就是一週期的平均值（0 Hz）；aₙ、bₙ 是各諧波在 cos、sin 基底上的係數。\n【符號約定】本報告的 a₀ 是平均值，不是另一些教材的 a₀/2 寫法；全篇一致。\n【圖說】下圖以 S_N(t)=(4/π)Σ_{k=0}^{N−1} sin[(2k+1)t]/(2k+1) 逼近方波（ω₀=1、T₀=2π，區間 −π..π），N=1、3、10。項數越多越接近方波，但在跳躍點附近有過衝震盪，稱為 Gibbs 現象。\n【嚴謹性】用「~」而不是無條件的等號：分段光滑函數的傅立葉級數在連續點收斂到訊號值，在跳躍點收斂到左右極限的平均（方波在 t=0 收斂到 0）。Gibbs 過衝的定量不在本次範圍。\n【常見誤解】「項數夠多就處處等於方波」——跳躍點附近的過衝不會隨 N 增加而消失，只會變窄。\n【銜接下一頁】先看最簡單的係數：a₀，直流分量。", "【時間】約 0:55\n【講法】a₀=(1/T₀)∫₀^{T₀} x(t) dt，就是一週期的平均值，也是 0 Hz 的成分。例：x(t)=3+2 sin(2π·100t)，正弦項在一個完整週期的積分為 0，所以 a₀=3。圖中虛線是沒有 DC 的 2 sin，實線整條往上平移 3，橘色虛線就是 a₀=3。\n【單位】若 x(t) 代表電壓，a₀ 的單位就是 V；它是訊號的常數偏移，不必等於物理上的直流供電。\n【雷達補充】雷達接收器的直流偏移可能來自電路與洩漏，需要謹慎處理（此處只提觀念）。\n【常見誤解】混用 a₀ 與 a₀/2 的定義——本報告一律以 a₀ 為平均值。\n【銜接下一頁】a₀ 用「平均」取出；aₙ、bₙ 要怎麼取？關鍵是「正交性」。", "【時間】約 1:20\n【講法】定義函數的內積 ⟨u,v⟩=∫₀^{T₀} u(t)v(t) dt；若 ⟨u,v⟩=0 就稱 u、v 正交。三角基底在一個完整基本週期上正交：∫₀^{T₀} cos(mω₀t)cos(nω₀t)dt = 0（m≠n），= T₀/2（m=n≥1）。\n【圖說】右下把 cos(ω₀t)×cos(2ω₀t) 畫出來，正面積與負面積剛好抵銷，積分為 0。\n【類比】與線性代數的 u·v=0 類比：函數像無限維向量，內積是「逐點相乘再加總（積分）」。\n【證明提示】product-to-sum identity：cos A cos B = ½[cos(A−B)+cos(A+B)]；整數非零諧波在完整週期的積分為零。細節留 Slide 11 與 Appendix A1。\n【常見誤解】正交不是「兩條波形在圖上垂直相交」，而是內積（乘積的積分）為 0；且必須是完整基本週期、正整數諧波。\n【銜接下一頁】有了正交性，就能一步導出 aₙ、bₙ 的公式。", "【時間】約 1:35\n【講法】(1) 把 x(t) 寫成級數；(2) 兩邊乘 cos(nω₀t)，在一個完整基本週期 [0,T₀] 積分；(3) 由正交性，所有 k≠n 的 cos 項與所有 sin 項、以及 a₀ 項的積分都為 0，只留下 aₙ·T₀/2；(4) 得 aₙ=(2/T₀)∫₀^{T₀} x(t)cos(nω₀t)dt，bₙ 同理乘 sin(nω₀t)：bₙ=(2/T₀)∫₀^{T₀} x(t)sin(nω₀t)dt。\n【圖說】右圖用 x(t)=2+3cos(ω₀t)+4sin(3ω₀t) 示範取 a₁：乘上 cos(ω₀t) 後積分一個完整週期，面積 = 3·T₀/2，所以 a₁=3。\n【嚴謹推導（務必完整保留）】對有限傅立葉和 S_N，有 ∫S_N cos(nω₀t)dt = aₙ∫cos²(nω₀t)dt = aₙT₀/2（N≥n），其他項為 0。對 x∈L²[0,T₀]，利用傅立葉部分和 S_N→x 在 L² 中收斂，且內積連續，得到係數公式。bₙ 同理。直流 a₀=(1/T₀)∫x。這個細節可回答教授關於「無限級數是否可以逐項積分」的提問（見 Appendix A2）。\n【常見誤解】不可聲稱任意時間區間都正交；必須是完整的基本週期（或其整數倍）。\n【銜接下一頁】得到 aₙ、bₙ 之後，怎麼轉成「振幅」與「相位」？", "【時間】約 1:15\n【講法】aₙcos(nω₀t)+bₙsin(nω₀t) 可以合成單一餘弦 Aₙcos(nω₀t+φₙ)。用 cos(θ+φ)=cosθcosφ−sinθsinφ 比較係數：aₙ=Aₙcosφₙ、bₙ=−Aₙsinφₙ。平方相加得 Aₙ=√(aₙ²+bₙ²)；角度 φₙ=atan2(−bₙ,aₙ)（Aₙ>0）。\n【圖說】右圖把 (aₙ, −bₙ) 畫在平面上：長度就是 Aₙ，與水平軸的夾角就是 φₙ。注意縱軸是 −bₙ 而不是 bₙ，這是因為採用 cos(θ+φ) 慣例。例：aₙ=2、bₙ=1.5 ⇒ Aₙ=2.5、φₙ=atan2(−1.5, 2)=−36.87°。\n【補充】atan2 是為了避免一般 arctan(−bₙ/aₙ) 失去象限資訊（例如 aₙ<0 時）。Aₙ=0 時相位無意義（未定義）。\n【常見誤解】寫成 atan2(bₙ,aₙ)——在本報告的 cos(θ+φ) 慣例下符號會錯。\n【銜接下一頁】用一個完整例子把係數、振幅譜、相位譜串起來。", "【時間】約 1:30\n【講法】x(t)=2+3cos(2π·100t)+4sin(2π·300t)。基頻 f₀=100 Hz（T₀=0.01 s）；係數 a₀=2、a₁=3、b₃=4，其餘為 0。\n單邊振幅頻譜：0 Hz→2（DC）、100 Hz→A₁=√(3²+0²)=3、300 Hz→A₃=√(0²+4²)=4。\n相位頻譜：φ₁=atan2(−0, 3)=0°；φ₃=atan2(−4, 0)=−90°。因為 sinθ=cos(θ−90°)，所以 300 Hz 的相位是 −90°。\n【圖的標示】中間是「單邊 Fourier-series 振幅譜，不是雙邊 FT」；200 Hz 沒有成分，所以沒有畫峰值。相位譜只畫非零交流諧波（DC 不畫相位）。\n【常見誤解】第三諧波振幅是 4，但 a₃=0（4 在 b₃）；某頻率是否存在由係數 (aₙ,bₙ) 是否非零決定，而不是只看 aₙ。\n【銜接下一頁】傅立葉級數只處理週期訊號；真實量測常常不是週期的——怎麼辦？", "【時間】約 1:00\n【講法】傅立葉級數處理的是週期訊號，頻率是離散的諧波 fₙ=n/T₀。但真實量測到的往往是有限時間的脈衝或回波，未必週期重複。右邊的單次矩形脈衝 x(t)=1（|t|≤T/2），其他為 0，只出現一次。\n問題：非週期訊號能不能描述頻率成分？答案：傅立葉轉換。\n【重點】非週期並不代表「沒有頻率」，而是不能用有限基本週期所對應的離散諧波，去描述整條時間軸上的訊號。這會引出連續頻率的表述。\n【常見誤解】矩形脈衝並不是只有單一頻率；它的頻率內容是一整片連續分布（Slide 18 會算出 T sinc(fT)）。\n【銜接下一頁】從傅立葉級數出發，讓週期 T→∞，看看會得到什麼。", "【時間】約 1:40\n【講法】改用複數形式傅立葉級數：x_T(t)=Σ_{n∈ℤ} cₙ e^{j2πfₙt}，fₙ=n/T；係數 cₙ=(1/T)∫_{−T/2}^{T/2} x_T(t) e^{−j2πfₙt} dt。定義頻率間距 Δf=1/T，並定義有限區間的連續頻率表示 X_T(f)=∫_{−T/2}^{T/2} x(t) e^{−j2πft} dt。比較兩式立得 cₙ = X_T(fₙ)/T = X_T(fₙ)Δf。\n【嚴謹推導】令 x 為有限時間支撐、充分良好的訊號；對大於訊號支撐的長度 T，先在 [−T/2,T/2] 定義 x 的週期延拓 x_T（在該區間上 x_T=x）。其複數 FS 係數 cₙ=(1/T)∫_{−T/2}^{T/2} x(t)e^{−j2πfₙt}dt。定義 X_T(f)，立得 cₙ=X_T(fₙ)/T=X_T(fₙ)Δf。選用負號的前向 transform，是為了和複數級數的正號基底 e^{+j2πfₙt} 一致。\n【複數形式與三角形式的關係】c₀=a₀，cₙ=(aₙ−jbₙ)/2，c₋ₙ=(aₙ+jbₙ)/2（n≥1，實訊號）。\n【常見誤解】把 cₙ 和 X_T(fₙ) 混為一談——兩者差一個 Δf；右圖格點間距正是 Δf=1/T。\n【銜接下一頁】把 cₙ=X_T(fₙ)Δf 代回級數，讓 T→∞。", "【時間】約 1:40\n【講法】把 cₙ=X_T(fₙ)Δf 代回：x_T(t)=Σ_{n∈ℤ} X_T(fₙ) e^{j2πfₙt} Δf。這正是一個黎曼和的形式。當 T→∞，Δf→0，頻率格點越來越密，X_T→X，黎曼和變成積分：x(t)=∫_{−∞}^{∞} X(f)e^{j2πft} df，其中 X(f)=∫_{−∞}^{∞} x(t)e^{−j2πft} dt。\n【圖說】右圖以寬 1 s、高 1 的矩形脈衝為例（X(f)=sinc(f)）。T=4 時格點間距 0.25，T=16 時 1/16，長條面積就是 cₙ；T→∞ 時得到連續的 X(f)。這是「形式上的極限，要求適當收斂條件」。\n【嚴謹性】在足夠良好的函數類別（例如光滑且快速衰減的訊號，或其他足以使傅立葉反演與黎曼和極限成立的條件）下可嚴謹處理。對矩形脈衝等分段光滑函數，反演於連續點成立，在跳躍點取左右極限平均。\n【常見誤解】不能只說「T 越大傅立葉係數不變」：cₙ 本身會隨 Δf 縮小而趨近 0；連續頻譜是對 cₙ/Δf 的恰當極限描述。\n【銜接下一頁】把這兩條式子正式定義為傅立葉轉換與逆轉換，並看它的物理意義。", "【時間】約 1:20\n【講法】正式定義：Forward FT X(f)=∫_{−∞}^{∞} x(t)e^{−j2πft}dt；Inverse FT x(t)=∫_{−∞}^{∞} X(f)e^{j2πft}df（本報告的定義不含額外的 2π 因子，正向負號、逆向正號）。Euler 公式 e^{jθ}=cosθ+j sinθ 把 cos、sin 合併成複指數。X(f) 一般是複數，可寫成極座標 X(f)=|X(f)|e^{jφ(f)}：|X(f)| 描述該頻率成分的大小，φ(f) 描述相位。\n【圖說】右上：時間域與頻率域透過正／逆轉換互相對應；右下：在某一頻率 f₁，X(f₁) 是複平面上的一個向量。\n【補充】j²=−1 是電機系寫法。X(f) 的量綱：若 x 是 V、時間用秒，X(f) 通常是 V·s（V/Hz），不是直接的電壓振幅。例如純正弦的 FT 是廣義函數（delta），需避免把「峰的高度」直覺套到所有情況。\n【數學條件】對 L¹ 函數可定義正向積分，反演需額外條件；更一般可用 L² 理論或廣義函數。\n【可能追問】週期訊號也有 FT 嗎？——在廣義函數意義下有，呈離散的 delta 譜，所以別說「FT 完全不能分析週期訊號」。為何用複數指數？——讓微分、積分、延遲及相位操作更簡潔。\n【銜接下一頁】看一個最重要的性質（時間平移）與最典型的例子（矩形脈衝）。", "【時間】約 1:55\n【講法】時間平移性質：x(t−τ) ↔ X(f)e^{−j2πfτ}——純延遲只乘上一個相位因子。矩形脈衝 x(t)=1（|t|≤T/2），其他為 0，其傅立葉轉換 X(f)=∫_{−T/2}^{T/2} e^{−j2πft}dt = T sinc(fT)，其中 sinc(u)=sin(πu)/(πu)、sinc(0)=1（normalized sinc）。結論：時間上有限的脈衝，在頻率上具有連續的頻譜。\n【完整計算】X(f)=∫_{−T/2}^{T/2} e^{−j2πft}dt = [e^{−j2πft}/(−j2πf)]_{−T/2}^{T/2} = (e^{jπfT}−e^{−jπfT})/(j2πf) = sin(πfT)/(πf) = T sinc(fT)，f≠0；f=0 時 X(0)=∫_{−T/2}^{T/2}1 dt=T，與連續延拓一致。\n【時間平移證明】令 u=t−τ：∫x(t−τ)e^{−j2πft}dt = e^{−j2πfτ}∫x(u)e^{−j2πfu}du = e^{−j2πfτ}X(f)。因 |e^{−j2πfτ}|=1，物理上純延遲只改變相位，不改變 |X(f)|（假設純延遲且未改變振幅）。這是與雷達回波最直接的數學連結。\n【圖說】右下畫的是實值 X(f)（T=1 s），有正負旁瓣，零點在 f=±1/T, ±2/T, …；淡綠虛線是振幅頻譜 |X(f)|，不會有負值——兩者不可混淆。\n【常見誤解】「矩形脈衝只有一個頻率」；或把 X(f) 的負旁瓣當成「負的振幅」。\n【銜接下一頁】總結四章，並說明它們如何連到雷達。", "【時間】約 1:25\n【講法】總結：時間域看訊號隨時間的變化；頻率域看各頻率的振幅與相位；傅立葉級數把週期訊號拆成離散諧波；傅立葉轉換在適當條件下把非週期／一般訊號表示成連續頻譜。雷達連結：回波延遲在頻率域是相位因子 e^{−j2πfτ}；目標運動造成都卜勒頻移 f_D。\n【補充（單站雷達）】最基本的距離關係 R=cτ/2，但必須明說：不是單靠傅立葉轉換得出 R；需要適合的波形與延遲估計方法才能量測。若談移動目標，非相對論近似的單站雷達都卜勒關係 |f_D|≈2|v_r|/λ（|v_r|≪c），正負號依慣例而定。\n【圖說】右圖是示意，不是量測結果；不畫任何距離或速度的「假量測」。\n【展望】下一階段研究：數位資料如何由 DFT/FFT 處理（含取樣定理、頻譜洩漏），並探索 FMCW 的距離與速度估計（Range–Doppler Map）。這些是後續主題，第一次報告誠實列為下一階段工作。\n【可能追問】只用頻譜能測距嗎？——不必然，必須結合雷達波形與延遲／拍頻／相位估計；單一 CW 頻率的相位測距有 2π 模糊性（見 Appendix A3）。\n【結尾】謝謝老師，請老師指教。", "【用途】備用頁：教授追問「正交性怎麼證」時使用。\n【逐行】(1) 積化和差 cos A cos B=½[cos(A−B)+cos(A+B)]，sin A sin B=½[cos(A−B)−cos(A+B)]。(2) 對非零整數 k，∫₀^{T₀} cos(kω₀t)dt = [sin(kω₀t)/(kω₀)]₀^{T₀} = sin(2πk)/(kω₀) = 0；同理 ∫₀^{T₀} sin(kω₀t)dt=0。(3) m≠n 時，m−n 與 m+n 都是非零整數，因此 ∫cos((m−n)ω₀t)dt 與 ∫cos((m+n)ω₀t)dt 都為 0，故 cos–cos 正交。(4) m=n≥1 時，cos²θ=(1+cos2θ)/2，積分得 T₀/2。\n【其他組合】正弦–正弦用 sin A sin B 公式同法；正弦–餘弦用 sin A cos B=½[sin(A+B)+sin(A−B)]，對所有 m, n（含 m=n）積分皆為 0。\n【限定條件】這些結論限定積分一個完整基本週期（或其整數倍）與正整數索引。也可補充：∫cos(nω₀t)=∫sin(nω₀t)=0（n≥1），所以常數基底 1 與所有諧波正交。", "【用途】備用頁：回答「無限級數可以逐項積分嗎？」。\n【論證】先看有限部分和 S_N(t)=a₀+Σ_{k=1}^{N}[aₖcos(kω₀t)+bₖsin(kω₀t)]。有限和可以逐項積分，由正交性 ⟨S_N, cos(nω₀t)⟩ = aₙT₀/2（N≥n）。若 S_N→x 在 L²[0,T₀] 中收斂（對 x∈L² 的傅立葉部分和確實如此），由 Cauchy–Schwarz：|⟨S_N−x, cos(nω₀t)⟩| ≤ ‖S_N−x‖₂·‖cos(nω₀t)‖₂ → 0，故 ⟨x, cos(nω₀t)⟩ = lim ⟨S_N, cos(nω₀t)⟩ = aₙT₀/2，即 aₙ=(2/T₀)⟨x, cos(nω₀t)⟩。\n【其他係數】對常數基底 1：⟨1,1⟩=T₀，得 a₀=(1/T₀)⟨x,1⟩；正弦基底得 bₙ=(2/T₀)⟨x, sin(nω₀t)⟩。\n【重點】展示我們不能無條件交換無限和與積分；先取有限部分和，再使用內積連續性。右側流程圖為可編輯的原生圖形。", "【用途】備用頁：回答雷達相關追問。\n【公式】單站雷達往返路徑 2R，傳播時間 τ=2R/c，故 R=cτ/2。連續波（載波 f_c）回波相位 Δφ=−2πf_cτ=−4πR/λ (mod 2π)，其中 λ=c/f_c。都卜勒近似 |f_D|≈2|v_r|/λ，前提是 |v_r|≪c（非相對論近似），正負號依慣例（靠近／遠離）而定。\n【相位模糊】右圖相位圓：τ、τ+1/f_c、τ+2/f_c… 對應同一個相位點；換成距離，就是 R 每增加 λ/2，相位繞一圈。所以單頻相位只能決定距離到 λ/2 的整數倍以內。\n【若教授問「頻譜中的一條峰能否直接當作物體距離？」】回答：不行，要看系統波形及數學模型。在 FMCW 雷達中，經混頻後的拍頻與距離有關；脈衝雷達可利用回波到達時間；都卜勒估計則常分析跨時間的相位或頻率變化。這些屬於下一階段（DFT/FFT/FMCW）的學習內容。\n【誠實聲明】本報告沒有執行真正的雷達量測，也沒有使用任何真實雷達規格；以上為理論關係。"]</script>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]], packages: { "[+]": ["ams"] } },
+  svg: { fontCache: "global" },
+  options: { skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "canvas", "output", "option"] }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<script>
+(() => {
+"use strict";
+// ------------------------------------------------------------------ helpers
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const PI = Math.PI, TAU = 2 * Math.PI;
+const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt = (x, d = 2) => (Math.abs(x) < 0.5 * Math.pow(10, -d) ? 0 : x).toFixed(d).replace("-", "−");
+const sinc = u => (Math.abs(u) < 1e-12 ? 1 : Math.sin(PI * u) / (PI * u));
+const wrap = p => { let q = ((p + PI) % TAU + TAU) % TAU - PI; return q <= -PI + 1e-12 ? PI : q; };
+const deg = r => r * 180 / PI;
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function integrate(f, a, b, n = 4000) { const h = (b - a) / n; let s = 0.5 * (f(a) + f(b)); for (let i = 1; i < n; i++) s += f(a + i * h); return s * h; }
+function val(id) { return parseFloat($("#" + id).value); }
+
+// ------------------------------------------------------------------ plot
+class Plot {
+  constructor(cv, m) { this.cv = cv; this.m = Object.assign({ l: 46, r: 14, t: 12, b: 32 }, m || {}); }
+  begin(xl, yl, o = {}) {
+    const cv = this.cv, dpr = window.devicePixelRatio || 1, w = cv.clientWidth, h = cv.clientHeight;
+    if (!w || !h) return false;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
+    const m = Object.assign({}, this.m, o.m || {});
+    Object.assign(this, { c, w, h, L: m.l, R: w - m.r, T: m.t, B: h - m.b });
+    [this.x0, this.x1] = xl; [this.y0, this.y1] = yl;
+    if (o.equal) {
+      const sx = (this.R - this.L) / (this.x1 - this.x0), sy = (this.B - this.T) / (this.y1 - this.y0), s = Math.min(sx, sy);
+      const cx = (this.x0 + this.x1) / 2, cy = (this.y0 + this.y1) / 2, hw = (this.R - this.L) / s / 2, hh = (this.B - this.T) / s / 2;
+      this.x0 = cx - hw; this.x1 = cx + hw; this.y0 = cy - hh; this.y1 = cy + hh;
+    }
+    this.font = `12.5px ${tok("--f-mono")}`;
+    return true;
+  }
+  X(x) { return this.L + (x - this.x0) / (this.x1 - this.x0) * (this.R - this.L); }
+  Y(y) { return this.B - (y - this.y0) / (this.y1 - this.y0) * (this.B - this.T); }
+  ix(px) { return this.x0 + (px - this.L) / (this.R - this.L) * (this.x1 - this.x0); }
+  iy(py) { return this.y0 + (this.B - py) / (this.B - this.T) * (this.y1 - this.y0); }
+  axes(o = {}) {
+    const c = this.c, grid = tok("--grid"), axis = tok("--axis"), muted = tok("--muted");
+    c.save(); c.font = this.font; c.lineWidth = 1;
+    (o.xt || []).forEach(v => { const x = this.X(v); if (o.grid !== false) { c.strokeStyle = grid; c.beginPath(); c.moveTo(x, this.T); c.lineTo(x, this.B); c.stroke(); }
+      c.fillStyle = muted; c.textAlign = "center"; c.textBaseline = "top"; c.fillText(o.xf ? o.xf(v) : fmt(v, o.xd ?? 0), x, this.B + 5); });
+    (o.yt || []).forEach(v => { const y = this.Y(v); if (o.grid !== false) { c.strokeStyle = grid; c.beginPath(); c.moveTo(this.L, y); c.lineTo(this.R, y); c.stroke(); }
+      c.fillStyle = muted; c.textAlign = "right"; c.textBaseline = "middle"; c.fillText(o.yf ? o.yf(v) : fmt(v, o.yd ?? 0), this.L - 6, y); });
+    c.strokeStyle = axis; c.beginPath(); c.moveTo(this.L, this.T); c.lineTo(this.L, this.B); c.lineTo(this.R, this.B); c.stroke();
+    if (o.zero && this.y0 < 0 && this.y1 > 0) { c.beginPath(); c.moveTo(this.L, this.Y(0)); c.lineTo(this.R, this.Y(0)); c.stroke(); }
+    c.fillStyle = muted; c.font = `12.5px ${tok("--f-body")}`;
+    if (o.xl) { c.textAlign = "right"; c.textBaseline = "bottom"; c.fillText(o.xl, this.R, this.B - 4); }
+    if (o.yl) { c.textAlign = "left"; c.textBaseline = "top"; c.fillText(o.yl, this.L + 6, this.T); }
+    if (o.title) { c.textAlign = "right"; c.textBaseline = "top"; c.fillStyle = tok("--ink"); c.fillText(o.title, this.R, this.T); }
+    c.restore();
+  }
+  clip(fn) { const c = this.c; c.save(); c.beginPath(); c.rect(this.L, this.T - 2, this.R - this.L, this.B - this.T + 4); c.clip(); fn(); c.restore(); }
+  path(xs, ys, col, o = {}) {
+    this.clip(() => { const c = this.c; c.strokeStyle = col; c.lineWidth = o.w || 2.2; c.setLineDash(o.dash || []); c.globalAlpha = o.a ?? 1;
+      c.beginPath(); xs.forEach((x, i) => { const px = this.X(x), py = this.Y(ys[i]); i ? c.lineTo(px, py) : c.moveTo(px, py); }); c.stroke(); });
+  }
+  fn(f, col, o = {}) { const n = o.n || 800, a = o.a0 ?? this.x0, b = o.b0 ?? this.x1, xs = [], ys = [];
+    for (let i = 0; i <= n; i++) { const x = a + (b - a) * i / n; xs.push(x); ys.push(f(x)); } this.path(xs, ys, col, o); }
+  fill(f, a, b, pos, neg, alpha = 0.32) {
+    const n = 600, xs = [], ys = []; for (let i = 0; i <= n; i++) { const x = a + (b - a) * i / n; xs.push(x); ys.push(f(x)); }
+    const c = this.c, y0 = this.Y(0);
+    [[pos, (y) => y < y0], [neg, (y) => y > y0]].forEach(([col, keep], k) => this.clip(() => {
+      c.save(); c.beginPath(); k ? c.rect(this.L, y0, this.R - this.L, this.B - y0 + 4) : c.rect(this.L, this.T - 2, this.R - this.L, y0 - this.T + 2); c.clip();
+      c.globalAlpha = alpha; c.fillStyle = col; c.beginPath(); c.moveTo(this.X(xs[0]), y0);
+      xs.forEach((x, i) => c.lineTo(this.X(x), this.Y(ys[i]))); c.lineTo(this.X(xs[n]), y0); c.closePath(); c.fill(); c.restore(); }));
+  }
+  stem(x, y, col, o = {}) { const c = this.c; c.save(); c.strokeStyle = col; c.lineWidth = o.w || 3; c.beginPath(); c.moveTo(this.X(x), this.Y(o.base || 0)); c.lineTo(this.X(x), this.Y(y)); c.stroke();
+    this.dot(x, y, col, o.r || 5, o.hollow); c.restore(); }
+  dot(x, y, col, r = 5, hollow = false) { const c = this.c; c.save(); c.beginPath(); c.arc(this.X(x), this.Y(y), r, 0, TAU);
+    if (hollow) { c.fillStyle = tok("--surface"); c.fill(); c.lineWidth = 2; c.strokeStyle = col; c.stroke(); } else { c.fillStyle = col; c.fill(); } c.restore(); }
+  hline(y, col, dash = [6, 4], w = 1.6) { this.path([this.x0, this.x1], [y, y], col, { dash, w }); }
+  vline(x, col, dash = [3, 3], w = 1.2) { const c = this.c; c.save(); c.strokeStyle = col; c.lineWidth = w; c.setLineDash(dash); c.beginPath(); c.moveTo(this.X(x), this.T); c.lineTo(this.X(x), this.B); c.stroke(); c.restore(); }
+  text(x, y, s, col, o = {}) { const c = this.c; c.save(); c.fillStyle = col; c.font = o.font || `${o.size || 13}px ${tok(o.mono ? "--f-mono" : "--f-body")}`;
+    c.textAlign = o.align || "left"; c.textBaseline = o.base || "middle"; c.fillText(s, o.px ? x : this.X(x), o.px ? y : this.Y(y)); c.restore(); }
+  arrow(x0, y0, x1, y1, col, o = {}) {
+    const c = this.c, a = [this.X(x0), this.Y(y0)], b = [this.X(x1), this.Y(y1)], hs = o.hs || 9;
+    c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = o.w || 2; c.setLineDash(o.dash || []);
+    c.beginPath(); c.moveTo(...a); c.lineTo(...b); c.stroke(); c.setLineDash([]);
+    const head = (p, q) => { const ang = Math.atan2(q[1] - p[1], q[0] - p[0]); c.beginPath(); c.moveTo(...q);
+      c.lineTo(q[0] - hs * Math.cos(ang - 0.42), q[1] - hs * Math.sin(ang - 0.42)); c.lineTo(q[0] - hs * Math.cos(ang + 0.42), q[1] - hs * Math.sin(ang + 0.42)); c.closePath(); c.fill(); };
+    head(a, b); if (o.both) head(b, a); c.restore();
+  }
+  arc(cx, cy, r, a0, a1, col, w = 2.2) { const c = this.c, s = (this.R - this.L) / (this.x1 - this.x0); c.save(); c.strokeStyle = col; c.lineWidth = w;
+    c.beginPath(); c.arc(this.X(cx), this.Y(cy), r * s, -a0, -a1, a1 > a0); c.stroke(); c.restore(); }
+  circle(cx, cy, r, col, w = 2) { this.arc(cx, cy, r, 0, TAU - 1e-6, col, w); }
+}
+
+// ------------------------------------------------------------------ demo registry
+const demos = {};
+const inited = {};
+function bindOutputs(root) {
+  $$("output[data-for]", root).forEach(o => {
+    const inp = $("#" + o.dataset.for), d = +(o.dataset.d || 2), u = o.dataset.u || "";
+    const up = () => { o.textContent = fmt(parseFloat(inp.value), d) + u; };
+    inp.addEventListener("input", up); up();
+  });
+}
+function onInputs(ids, fn) { ids.forEach(id => $("#" + id).addEventListener("input", fn)); }
+
+// ---------- 01 cover (animated)
+demos.s1 = () => {
+  const p = new Plot($("#c1"), { l: 10, r: 10, t: 10, b: 10 });
+  let ph = 0;
+  return (dt = 0) => {
+    ph += dt * 0.0018;
+    if (!p.begin([0, 10], [0, 7.2])) return;
+    const c = p.c, rings = tok("--line");
+    for (let r = 1.4; r < 13; r += 1.4) p.arc(0.4, 0.4, r, 0, PI / 2, rings, 1.2);
+    const tx = 0.4 + 7.6 * Math.cos(0.18), ty = 0.4 + 7.6 * Math.sin(0.18);
+    p.dot(tx, ty, tok("--echo"), 6); p.text(tx - 0.25, ty + 0.05, "目標（示意）", tok("--echo"), { align: "right", size: 12 });
+    // time panel
+    const x0 = 0.5, w = 4.2, yc = 4.9, hA = 1.25;
+    p.text(x0, 6.9, "時間域 x(t)", tok("--sig"), { size: 13, base: "top" });
+    p.path([x0, x0 + w], [yc, yc], tok("--axis"), { w: 1 });
+    const xs = [], ys = []; for (let i = 0; i <= 500; i++) { const u = i / 500, t = u * 0.02 + ph * 0.002; xs.push(x0 + u * w); ys.push(yc + hA * 0.66 * (Math.sin(TAU * 100 * t) + 0.5 * Math.sin(TAU * 300 * t))); }
+    p.path(xs, ys, tok("--sig"), { w: 2.4 });
+    p.arrow(5.0, yc, 5.9, yc, tok("--accent"), { w: 2.6, hs: 11 }); p.text(5.45, yc + 0.45, "傅立葉", tok("--accent"), { align: "center", size: 13 });
+    // spectrum panel
+    const s0 = 6.3, sw = 3.3, base = 3.75;
+    p.text(s0, 6.9, "頻率域（單邊振幅）", tok("--spec"), { size: 13, base: "top" });
+    p.path([s0, s0 + sw], [base, base], tok("--axis"), { w: 1 });
+    const pulse = reduceMotion ? 1 : 0.92 + 0.08 * Math.sin(ph * 2);
+    p.stem(s0 + sw * 0.25, base + 2.2 * pulse, tok("--spec"), { base, w: 3.2 }); p.stem(s0 + sw * 0.75, base + 1.1 * pulse, tok("--spec"), { base, w: 3.2 });
+    p.text(s0 + sw * 0.25, base - 0.35, "100 Hz", tok("--muted"), { align: "center", mono: true, size: 12 });
+    p.text(s0 + sw * 0.75, base - 0.35, "300 Hz", tok("--muted"), { align: "center", mono: true, size: 12 });
+    // antenna
+    c.save(); c.strokeStyle = tok("--ink"); c.lineWidth = 2.4; c.beginPath(); c.moveTo(p.X(0.4), p.Y(0.15)); c.lineTo(p.X(0.4), p.Y(0.85)); c.stroke(); c.restore();
+    p.arc(0.4, 1.05, 0.38, PI * 1.1, PI * 1.9, tok("--ink"), 2.6);
+    p.text(0.9, 0.55, "雷達", tok("--ink"), { size: 12 });
+  };
+};
+
+// ---------- 03
+demos.s3 = () => {
+  const P = ["#c3a", "#c3b", "#c3c"].map(s => new Plot($(s), { b: 22, t: 18 }));
+  bindOutputs($("#s3")); onInputs(["s3a1", "s3a2"], () => draw());
+  $("#s3rev").addEventListener("click", e => { const on = e.currentTarget.getAttribute("aria-pressed") !== "true"; e.currentTarget.setAttribute("aria-pressed", on); $("#s3ans").hidden = !on; });
+  function draw() {
+    const a1 = val("s3a1"), a2 = val("s3a2"), f = [t => a1 * Math.sin(TAU * 100 * t / 1000), t => a2 * Math.sin(TAU * 300 * t / 1000), t => a1 * Math.sin(TAU * 100 * t / 1000) + a2 * Math.sin(TAU * 300 * t / 1000)];
+    const lab = ["成分 1：100 Hz（20 ms 內 2 個週期）", "成分 2：300 Hz（20 ms 內 6 個週期）", "合成 x(t)"];
+    P.forEach((p, i) => { const yl = i === 2 ? 3.1 : 1.7; if (!p.begin([0, 20], [-yl, yl])) return; p.axes({ xt: [0, 5, 10, 15, 20], yt: i === 2 ? [-2, 0, 2] : [-1, 0, 1], xl: i === 2 ? "t（ms）" : "" });
+      p.fn(f[i], i === 2 ? tok("--sig") : tok("--sig2"), { w: i === 2 ? 2.6 : 2 }); p.text(p.L + 6, 9, lab[i], tok("--ink"), { px: true, size: 12.5 }); });
+  }
+  return draw;
+};
+
+// ---------- 04
+demos.s4 = () => {
+  const pt = new Plot($("#c4a")), ps = new Plot($("#c4b"));
+  bindOutputs($("#s4")); onInputs(["s4a1", "s4a2", "s4f2"], () => draw());
+  function draw() {
+    const a1 = val("s4a1"), a2 = val("s4a2"), f2 = val("s4f2");
+    if (pt.begin([0, 20], [-3, 3])) { pt.axes({ xt: [0, 5, 10, 15, 20], yt: [-2, -1, 0, 1, 2], xl: "t（ms）", yl: "時間域 x(t)" });
+      pt.fn(t => a1 * Math.sin(TAU * 100 * t / 1000) + a2 * Math.sin(TAU * f2 * t / 1000), tok("--sig"), { w: 2.4 }); }
+    if (ps.begin([0, 550], [0, 1.7])) { ps.axes({ xt: [0, 100, 200, 300, 400, 500], yt: [0, 0.5, 1, 1.5], yd: 1, xl: "f（Hz）", yl: "頻率域：單邊振幅譜（成分示意）" });
+      [[100, a1], [f2, a2]].forEach(([fq, a]) => { if (a > 0) { ps.stem(fq, a, tok("--spec")); ps.text(fq + 10, a, fmt(a, 2), tok("--spec"), { mono: true, size: 12.5 }); } }); }
+  }
+  return draw;
+};
+
+// ---------- 05
+demos.s5 = () => {
+  const p = new Plot($("#c5"));
+  bindOutputs($("#s5")); onInputs(["s5A", "s5f", "s5p"], () => draw());
+  function draw() {
+    const A = val("s5A"), f = val("s5f"), ph = val("s5p") * PI / 180;
+    if (p.begin([0, 1], [-2.3, 2.3])) { p.axes({ xt: [0, 0.25, 0.5, 0.75, 1], xd: 2, yt: [-2, -1, 0, 1, 2], xl: "t（s）", yl: "x(t)" });
+      p.fn(t => Math.cos(TAU * 2 * t), tok("--muted"), { dash: [6, 5], w: 1.6 });
+      p.fn(t => A * Math.cos(TAU * f * t + ph), tok("--sig"), { w: 2.6 }); }
+    $("#r5").innerHTML = `T = 1/f = <b>${fmt(1 / f, 3)} s</b>　ω = 2πf = <b>${fmt(TAU * f, 2)} rad/s</b>　φ = <b>${fmt(val("s5p"), 0)}°</b> = <b>${fmt(ph, 3)} rad</b>`;
+  }
+  return draw;
+};
+
+// ---------- 06
+demos.s6 = () => {
+  const pw = new Plot($("#c6a")), pc = new Plot($("#c6b"), { l: 10, r: 10, t: 10, b: 10 });
+  bindOutputs($("#s6")); onInputs(["s6f", "s6t"], () => draw());
+  const setTau = v => { const el = $("#s6t"); el.value = Math.min(+el.max, v); el.dispatchEvent(new Event("input")); };
+  $("#s6plus").addEventListener("click", () => setTau(val("s6t") + 1 / val("s6f")));
+  $("#s6reset").addEventListener("click", () => { $("#s6f").value = 5; $("#s6f").dispatchEvent(new Event("input")); setTau(0.04); });
+  function draw() {
+    const f = val("s6f"), tau = val("s6t"), dphi = -TAU * f * tau, w = wrap(dphi);
+    if (pw.begin([0, 0.6], [-1.4, 1.6])) { pw.axes({ xt: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6], xd: 1, yt: [-1, 0, 1], xl: "t（s）", yl: "藍：發射 s(t)　紅：接收 r(t)" });
+      pw.fn(t => Math.cos(TAU * f * t), tok("--sig"), { w: 2.2 }); pw.fn(t => 0.7 * Math.cos(TAU * f * (t - tau)), tok("--echo"), { w: 2.2 });
+      const t0 = Math.ceil(tau * f) / f; if (t0 + tau <= 0.6 && tau > 0.002) { pw.vline(t0, tok("--axis")); pw.vline(t0 + tau, tok("--axis")); pw.arrow(t0, 1.3, t0 + tau, 1.3, tok("--ink"), { both: true, hs: 7, w: 1.6 }); pw.text(t0 + tau / 2, 1.48, "τ", tok("--ink"), { align: "center", size: 15 }); } }
+    if (pc.begin([-1.6, 1.6], [-1.3, 1.3], { equal: true })) {
+      pc.circle(0, 0, 1, tok("--line"), 2); pc.path([-1.2, 1.2], [0, 0], tok("--axis"), { w: 1 }); pc.path([0, 0], [-1.2, 1.2], tok("--axis"), { w: 1 });
+      pc.arrow(0, 0, 1, 0, tok("--sig"), { w: 2.4 }); pc.arrow(0, 0, Math.cos(w), Math.sin(w), tok("--echo"), { w: 2.6 });
+      if (Math.abs(w) > 0.02) pc.arc(0, 0, 0.42, Math.min(0, w), Math.max(0, w), tok("--phase"), 2.6);
+      pc.text(1.08, 0.12, "發射（參考）", tok("--sig"), { size: 12 }); pc.text(Math.cos(w) * 1.1, Math.sin(w) * 1.1, "接收", tok("--echo"), { size: 12, align: Math.cos(w) < 0 ? "right" : "left" });
+      pc.text(-1.55, 1.15, "相位圓（逆時針為正）", tok("--muted"), { size: 12 }); }
+    $("#r6").innerHTML = `Δφ = −2πfτ = <b>${fmt(dphi, 3)} rad</b>（${fmt(deg(dphi), 1)}°）<br>mod 2π → <b>${fmt(w, 3)} rad = ${fmt(deg(w), 1)}°</b>　· 一個週期 1/f = ${fmt(1 / f, 3)} s`;
+  }
+  return draw;
+};
+
+// ---------- 07
+demos.s7 = () => {
+  const pt = new Plot($("#c7a")), ph = new Plot($("#c7b"), { b: 30, t: 22 });
+  bindOutputs($("#s7")); onInputs(["s7f"], () => draw());
+  $("#s7fill").addEventListener("click", e => { const b = e.currentTarget; b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); draw(); });
+  function draw() {
+    const f0 = val("s7f"), T0 = 1000 / f0, tmax = 40, show = $("#s7fill").getAttribute("aria-pressed") === "true";
+    if (pt.begin([0, tmax], [-1.7, 2.1])) { pt.axes({ xt: [0, 10, 20, 30, 40], yt: [-1, 0, 1], xl: "t（ms）", yl: "時間域" });
+      for (let k = 0; k * T0 < tmax; k++) { pt.vline(k * T0, tok("--axis")); if ((k + 1) * T0 <= tmax && k < 2) pt.arrow(k * T0, 1.75, (k + 1) * T0, 1.75, tok("--ink"), { both: true, hs: 6, w: 1.4 }); }
+      if (2 * T0 <= tmax) pt.text(T0 / 2, 1.95, `T₀ = ${fmt(T0, 2)} ms`, tok("--ink"), { align: "center", mono: true, size: 12 });
+      pt.fn(t => Math.sin(TAU * f0 * t / 1000) + 0.5 * Math.sin(TAU * 3 * f0 * t / 1000), tok("--sig"), { w: 2.2, n: 1400 }); }
+    if (ph.begin([0, 1600], [-0.6, 1.2])) { ph.axes({ xt: [0, 400, 800, 1200, 1600], yt: [], grid: false, xl: "f（Hz）" });
+      ph.text(ph.L + 6, 10, show ? "實心＝這個訊號的非零係數（n = 1, 3）" : "空心＝可能的諧波位置 fₙ = n f₀（不代表有值）", tok("--ink"), { px: true, size: 12.5 });
+      for (let n = 1; n * f0 <= 1600; n++) { const nz = show && (n === 1 || n === 3); ph.dot(n * f0, 0, tok("--spec"), 6, !nz); if (n <= 8) ph.text(n * f0, 0.55, "n=" + n, tok("--spec"), { align: "center", size: 11, mono: true }); } }
+    $("#r7").innerHTML = `f₀ = <b>${f0} Hz</b>　T₀ = 1/f₀ = <b>${fmt(T0, 2)} ms</b>　ω₀ = 2π/T₀ = <b>${fmt(TAU * f0, 1)} rad/s</b><br>前三個諧波：${f0}、${2 * f0}、${3 * f0} Hz${show ? "；此訊號 n = 2、4 的係數為 0" : ""}`;
+  }
+  return draw;
+};
+
+// ---------- 08
+demos.s8 = () => {
+  const p = new Plot($("#c8"));
+  bindOutputs($("#s8")); onInputs(["s8N"], () => draw());
+  let timer = null;
+  const play = $("#s8play");
+  play.addEventListener("click", () => {
+    if (timer) { clearInterval(timer); timer = null; play.setAttribute("aria-pressed", "false"); play.textContent = "▶ 自動增加 N"; return; }
+    const el = $("#s8N"); if (+el.value >= 60) el.value = 1;
+    play.setAttribute("aria-pressed", "true"); play.textContent = "❚❚ 暫停";
+    timer = setInterval(() => { if (+el.value >= 60 || !$("#s8").offsetParent) { clearInterval(timer); timer = null; play.setAttribute("aria-pressed", "false"); play.textContent = "▶ 自動增加 N"; return; }
+      el.value = +el.value + 1; el.dispatchEvent(new Event("input")); }, reduceMotion ? 400 : 160);
+  });
+  $("#s8terms").addEventListener("click", e => { const b = e.currentTarget; b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") !== "true"); draw(); });
+  const S = (t, N) => { let s = 0; for (let k = 0; k < N; k++) s += Math.sin((2 * k + 1) * t) / (2 * k + 1); return 4 / PI * s; };
+  function draw() {
+    const N = val("s8N"), terms = $("#s8terms").getAttribute("aria-pressed") === "true";
+    if (p.begin([-PI, PI], [-1.6, 1.6])) {
+      p.axes({ xt: [-PI, -PI / 2, 0, PI / 2, PI], xf: v => ({ [-PI]: "−π", [-PI / 2]: "−π/2", 0: "0", [PI / 2]: "π/2", [PI]: "π" })[v], yt: [-1, 0, 1], xl: "t（rad）" });
+      p.path([-PI, 0, 0, PI], [-1, -1, 1, 1], tok("--muted"), { dash: [6, 5], w: 1.5 });
+      if (terms) for (let k = 0; k < Math.min(N, 6); k++) p.fn(t => 4 / PI * Math.sin((2 * k + 1) * t) / (2 * k + 1), tok("--sig2"), { w: 1.3, a: 0.9 });
+      p.fn(t => S(t, N), tok("--sig"), { w: 2.6, n: 1600 });
+      if (N >= 6) { let best = 0, bt = 0; for (let i = 1; i < 2000; i++) { const t = i / 2000 * 1.2; const v = S(t, N); if (v > best) { best = v; bt = t; } }
+        p.dot(bt, best, tok("--echo"), 4); p.text(bt + 0.15, Math.min(1.5, best + 0.1), "Gibbs 現象", tok("--echo"), { size: 13 }); }
+    }
+    let mx = 0; for (let i = 1; i < 3000; i++) mx = Math.max(mx, S(i / 3000 * PI, N));
+    $("#r8").innerHTML = `N = <b>${N}</b>（最高諧波 ${2 * N - 1}ω₀）　S_N(0) = <b>${fmt(S(0, N), 3)}</b>（跳躍點→左右平均 0）<br>最大值 ≈ <b>${fmt(mx, 4)}</b>：過衝不會隨 N 消失，只會變窄`;
+  }
+  return draw;
+};
+
+// ---------- 09
+demos.s9 = () => {
+  const p = new Plot($("#c9"));
+  bindOutputs($("#s9")); onInputs(["s9c", "s9w"], () => draw());
+  function draw() {
+    const c = val("s9c"), L = val("s9w") * 10, f = t => c + 2 * Math.sin(TAU * 100 * t / 1000);
+    const mean = integrate(f, 0, L) / L;
+    if (p.begin([0, 20], [-5.5, 6.5])) { p.axes({ xt: [0, 5, 10, 15, 20], yt: [-4, -2, 0, 2, 4, 6], xl: "t（ms）", yl: "時間域" });
+      p.c.save(); p.c.fillStyle = tok("--tint"); p.c.fillRect(p.X(0), p.T, p.X(L) - p.X(0), p.B - p.T); p.c.restore();
+      p.hline(0, tok("--axis"), [], 1.2);
+      p.fn(t => 2 * Math.sin(TAU * 100 * t / 1000), tok("--sig2"), { dash: [6, 4], w: 1.8 });
+      p.fn(f, tok("--sig"), { w: 2.6 }); p.hline(mean, tok("--dc"), [7, 4], 2.2);
+      p.text(19.7, mean + 0.55, "平均 = " + fmt(mean, 3), tok("--dc"), { align: "right", mono: true, size: 12.5 }); }
+    const full = Math.abs(val("s9w") - Math.round(val("s9w"))) < 1e-9;
+    $("#r9").innerHTML = `(1/L)∫₀ᴸ x(t) dt = <b>${fmt(mean, 4)}</b>　（L = ${fmt(L, 1)} ms；T₀ = 10 ms）<br>${full ? "L 是 T₀ 的整數倍 → 正弦項積分為 0，平均值恰為 c = " + fmt(c, 1) : "L 不是完整週期 → 正弦項留下殘量，平均值偏離 c"}`;
+  }
+  return draw;
+};
+
+// ---------- 10
+demos.s10 = () => {
+  const pa = new Plot($("#c10a")), pb = new Plot($("#c10b"));
+  ["s10ut", "s10m", "s10vt", "s10n"].forEach(id => $("#" + id).addEventListener("change", () => draw()));
+  function draw() {
+    const ut = $("#s10ut").value, vt = $("#s10vt").value, m = +$("#s10m").value, n = +$("#s10n").value;
+    const F = (tp, k) => (u => (tp === "cos" ? Math.cos : Math.sin)(TAU * k * u)), u = F(ut, m), v = F(vt, n), pr = x => u(x) * v(x);
+    const I = integrate(pr, 0, 1, 6000);
+    if (pa.begin([0, 1], [-1.3, 1.3])) { pa.axes({ xt: [0, 0.25, 0.5, 0.75, 1], xd: 2, yt: [-1, 0, 1], xl: "t / T₀" });
+      pa.fn(u, tok("--sig"), { w: 2.2 }); pa.fn(v, tok("--ink"), { w: 2, dash: [6, 4] }); pa.text(pa.L + 6, 10, `實線 u = ${ut}(${m}ω₀t)　虛線 v = ${vt}(${n}ω₀t)`, tok("--ink"), { px: true, size: 12.5 }); }
+    if (pb.begin([0, 1], [-1.15, 1.15])) { pb.axes({ xt: [0, 0.25, 0.5, 0.75, 1], xd: 2, yt: [-1, 0, 1], xl: "t / T₀", zero: true });
+      pb.fill(pr, 0, 1, tok("--accent"), tok("--muted"), 0.35); pb.fn(pr, tok("--ink"), { w: 2 }); pb.text(pb.L + 6, 10, "乘積 u·v：正面積（綠）與負面積（灰）", tok("--ink"), { px: true, size: 12.5 }); }
+    const same = ut === vt && m === n;
+    $("#r10").innerHTML = `⟨u, v⟩ = ∫₀^T₀ u v dt = <b>${fmt(I, 4)} T₀</b>　→ ${same ? "<b>相同基底：T₀/2</b>" : "<b>正交：0</b>（正負面積抵銷）"}`;
+  }
+  return draw;
+};
+
+// ---------- 11
+demos.s11 = () => {
+  const px = new Plot($("#c11a"), { t: 18, b: 22 }), pp = new Plot($("#c11b"));
+  bindOutputs($("#s11")); onInputs(["s11n", "s11L"], () => draw());
+  let basis = "cos";
+  [["#s11cos", "cos"], ["#s11sin", "sin"]].forEach(([s, b]) => $(s).addEventListener("click", () => { basis = b; $("#s11cos").setAttribute("aria-pressed", b === "cos"); $("#s11sin").setAttribute("aria-pressed", b === "sin"); draw(); }));
+  const x = u => 2 + 3 * Math.cos(TAU * u) + 4 * Math.sin(3 * TAU * u);
+  const truth = { cos: [0, 3, 0, 0, 0, 0], sin: [0, 0, 0, 4, 0, 0] };
+  function draw() {
+    const n = val("s11n"), L = val("s11L"), bf = u => (basis === "cos" ? Math.cos : Math.sin)(n * TAU * u), pr = u => x(u) * bf(u);
+    const est = 2 / L * integrate(pr, 0, L, 6000);
+    if (px.begin([0, 1.5], [-6, 10])) { px.axes({ xt: [0, 0.5, 1, 1.5], xd: 1, yt: [0, 5], grid: true });
+      px.fn(x, tok("--sig"), { w: 2 }); px.fn(u => 3 * bf(u), tok("--accent"), { w: 1.6, dash: [5, 4] });
+      px.text(px.L + 6, 9, `x(t)（藍）與基底 ${basis}(${n}ω₀t)（綠虛線，放大 3 倍）`, tok("--ink"), { px: true, size: 12.5 }); }
+    if (pp.begin([0, 1.5], [-10, 10])) { pp.axes({ xt: [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5], xd: 2, yt: [-8, -4, 0, 4, 8], xl: "t / T₀", zero: true });
+      pp.c.save(); pp.c.fillStyle = tok("--tint"); pp.c.globalAlpha = 0.6; pp.c.fillRect(pp.X(0), pp.T, pp.X(L) - pp.X(0), pp.B - pp.T); pp.c.restore();
+      pp.fill(pr, 0, L, tok("--accent"), tok("--muted"), 0.4); pp.fn(pr, tok("--ink"), { w: 1.8 }); pp.vline(L, tok("--dc"), [5, 3], 2);
+      pp.text(pp.L + 6, 10, "乘積 x(t)·基底；陰影＝積分範圍 [0, L]", tok("--ink"), { px: true, size: 12.5 }); }
+    const t = truth[basis][n] ?? 0, sym = basis === "cos" ? "a" : "b", ok = Math.abs(L - 1) < 1e-9;
+    $("#r11").innerHTML = `(2/L)∫₀ᴸ x·${basis}(${n}ω₀t) dt = <b>${fmt(est, 4)}</b>　真值 ${sym}${"₀₁₂₃₄₅"[n]} = <b>${t}</b><br>${ok ? "L = T₀（完整週期）→ 正交性成立，只留下目標係數" : "L ≠ T₀ → 其他項沒有抵銷，結果被污染"}`;
+  }
+  return draw;
+};
+
+// ---------- 12
+demos.s12 = () => {
+  const p = new Plot($("#c12a"), { l: 10, r: 10, t: 10, b: 10 }), pw = new Plot($("#c12b"), { t: 18, b: 24 });
+  let a = 2, b = 1.5, drag = false;
+  const cv = $("#c12a");
+  const setFrom = e => { const r = cv.getBoundingClientRect(); a = Math.max(-3, Math.min(3, p.ix(e.clientX - r.left))); b = -Math.max(-3, Math.min(3, p.iy(e.clientY - r.top)));
+    a = Math.round(a * 20) / 20; b = Math.round(b * 20) / 20; draw(); };
+  cv.addEventListener("pointerdown", e => { drag = true; cv.setPointerCapture(e.pointerId); setFrom(e); });
+  cv.addEventListener("pointermove", e => { if (drag) setFrom(e); });
+  cv.addEventListener("pointerup", () => { drag = false; });
+  cv.style.cursor = "crosshair";
+  function draw() {
+    const A = Math.hypot(a, b), phi = Math.atan2(-b, a);
+    if (p.begin([-3.3, 3.3], [-3.3, 3.3], { equal: true })) {
+      for (let g = -3; g <= 3; g++) { p.path([g, g], [-3.2, 3.2], tok("--grid"), { w: 1 }); p.path([-3.2, 3.2], [g, g], tok("--grid"), { w: 1 }); }
+      p.arrow(-3.2, 0, 3.2, 0, tok("--axis"), { w: 1.4, hs: 7 }); p.arrow(0, -3.2, 0, 3.2, tok("--axis"), { w: 1.4, hs: 7 });
+      p.text(3.15, 0.25, "aₙ", tok("--ink"), { align: "right", size: 15 }); p.text(0.15, 3.05, "−bₙ（注意負號）", tok("--ink"), { size: 13 });
+      p.path([a, a], [0, -b], tok("--muted"), { dash: [3, 3], w: 1.3 }); p.path([0, a], [-b, -b], tok("--muted"), { dash: [3, 3], w: 1.3 });
+      if (A > 0.05) { p.arrow(0, 0, a, -b, tok("--spec"), { w: 3, hs: 11 }); p.arc(0, 0, 0.7, Math.min(0, phi), Math.max(0, phi), tok("--phase"), 2.6); }
+      p.dot(a, -b, tok("--spec"), 7); p.text(a + 0.15, -b + (b > 0 ? -0.3 : 0.3), "(aₙ, −bₙ)  拖我", tok("--ink"), { size: 12.5, align: a > 1.5 ? "right" : "left" });
+      p.text(-3.1, -3.0, "φₙ", tok("--phase"), { size: 13 }); p.text(-2.7, -3.0, "= 綠色向量與水平軸的夾角", tok("--muted"), { size: 12 });
+    }
+    if (pw.begin([0, TAU * 1.5], [-4.5, 4.5])) { pw.axes({ xt: [0, PI, TAU, 3 * PI], xf: v => ["0", "π", "2π", "3π"][Math.round(v / PI)], yt: [-4, 0, 4], xl: "θ = nω₀t" });
+      pw.fn(th => a * Math.cos(th) + b * Math.sin(th), tok("--sig"), { w: 4, a: 0.45 }); pw.fn(th => A * Math.cos(th + phi), tok("--ink"), { w: 1.8, dash: [6, 4] });
+      pw.text(pw.L + 6, 9, "粗藍：aₙcos θ + bₙsin θ　虛線：Aₙcos(θ+φₙ)（完全重合）", tok("--ink"), { px: true, size: 12 }); }
+    $("#r12").innerHTML = `aₙ = <b>${fmt(a, 2)}</b>　bₙ = <b>${fmt(b, 2)}</b>　→　Aₙ = √(aₙ²+bₙ²) = <b>${fmt(A, 3)}</b>　φₙ = atan2(−bₙ, aₙ) = <b>${A < 1e-9 ? "未定義" : fmt(deg(phi), 1) + "°"}</b>`;
+  }
+  return draw;
+};
+
+// ---------- 13
+demos.s13 = () => {
+  const pt = new Plot($("#c13a"), { t: 18, b: 24 }), pa = new Plot($("#c13b"), { t: 18, b: 24 }), pf = new Plot($("#c13c"), { t: 18, b: 24 });
+  const ids = ["k_a0", "k_a1", "k_b1", "k_a2", "k_b2", "k_a3", "k_b3"], defs = [2, 3, 0, 0, 0, 0, 4];
+  ids.forEach(id => $("#" + id).addEventListener("input", () => draw()));
+  $("#s13reset").addEventListener("click", () => { ids.forEach((id, i) => $("#" + id).value = defs[i]); draw(); });
+  function draw() {
+    const v = ids.map(id => parseFloat($("#" + id).value) || 0), a0 = v[0], ab = [[v[1], v[2]], [v[3], v[4]], [v[5], v[6]]];
+    const x = t => a0 + ab.reduce((s, [a, b], i) => s + a * Math.cos(TAU * 100 * (i + 1) * t / 1000) + b * Math.sin(TAU * 100 * (i + 1) * t / 1000), 0);
+    let lo = Infinity, hi = -Infinity; for (let i = 0; i <= 400; i++) { const y = x(i / 20); lo = Math.min(lo, y); hi = Math.max(hi, y); }
+    const pad = Math.max(1, (hi - lo) * 0.12);
+    if (pt.begin([0, 20], [lo - pad, hi + pad])) { pt.axes({ xt: [0, 5, 10, 15, 20], yt: [Math.round(lo), Math.round(a0), Math.round(hi)], xl: "t（ms）" });
+      pt.hline(a0, tok("--dc"), [6, 4], 1.6); pt.fn(x, tok("--sig"), { w: 2.2, n: 1200 }); pt.text(pt.L + 6, 9, "時間域 x(t)；橘虛線 = a₀", tok("--ink"), { px: true, size: 12 }); }
+    const A = ab.map(([a, b]) => Math.hypot(a, b)), Amax = Math.max(Math.abs(a0), ...A, 1);
+    if (pa.begin([-40, 440], [0, Amax * 1.3])) { pa.axes({ xt: [0, 100, 200, 300, 400], yt: [0, Math.round(Amax)], xl: "f（Hz）" });
+      if (Math.abs(a0) > 1e-9) { pa.stem(0, Math.abs(a0), tok("--dc")); pa.text(14, Math.abs(a0), fmt(a0, 1), tok("--dc"), { mono: true, size: 12 }); }
+      A.forEach((Av, i) => { if (Av > 1e-9) { pa.stem(100 * (i + 1), Av, tok("--spec")); pa.text(100 * (i + 1) + 14, Av, fmt(Av, 2), tok("--spec"), { mono: true, size: 12 }); } });
+      pa.text(pa.L + 6, 9, "頻率域｜單邊振幅譜 Aₙ（DC 用 |a₀|）", tok("--ink"), { px: true, size: 12 }); }
+    if (pf.begin([-40, 440], [-200, 200])) { pf.axes({ xt: [0, 100, 200, 300, 400], yt: [-180, -90, 0, 90, 180], xl: "f（Hz）", zero: true });
+      ab.forEach(([a, b], i) => { if (A[i] > 1e-9) { const ph = deg(Math.atan2(-b, a)); pf.stem(100 * (i + 1), ph, tok("--phase")); pf.text(100 * (i + 1) + 14, ph + (ph >= 0 ? 18 : -18), fmt(ph, 0) + "°", tok("--phase"), { mono: true, size: 12 }); } });
+      pf.text(pf.L + 6, 9, "頻率域｜相位譜 φₙ（只畫非零交流諧波）", tok("--ink"), { px: true, size: 12 }); }
+  }
+  return draw;
+};
+
+// ---------- 14
+demos.s14 = () => {
+  const p = new Plot($("#c14"));
+  bindOutputs($("#s14")); onInputs(["s14T"], () => draw());
+  function draw() {
+    const T0 = val("s14T"), W = 1;
+    if (p.begin([-12, 12], [-0.3, 1.5])) { p.axes({ xt: [-12, -8, -4, 0, 4, 8, 12], yt: [0, 1], xl: "t（任意單位）", yl: "時間域（示意）" });
+      const xs = [], ys = []; for (let i = 0; i <= 4000; i++) { const t = -12 + 24 * i / 4000, r = ((t % T0) + T0 * 1.5) % T0 - T0 / 2; xs.push(t); ys.push(Math.abs(r) <= W / 2 ? 1 : 0); }
+      p.path(xs, ys, tok("--sig"), { w: 2.4 });
+      if (T0 <= 11) p.arrow(0, 1.25, T0, 1.25, tok("--ink"), { both: true, hs: 7, w: 1.5 }), p.text(T0 / 2, 1.4, "T₀", tok("--ink"), { align: "center", size: 14 }); }
+    $("#r14").innerHTML = `脈衝寬 1；週期 T₀ = <b>${fmt(T0, 1)}</b> → 諧波間距 1/T₀ = <b>${fmt(1 / T0, 3)}</b><br>${T0 > 12 ? "視窗內只剩單一脈衝：T₀ → ∞ 時就是非週期訊號" : "把 T₀ 拉大，副本向兩側遠離"}`;
+  }
+  return draw;
+};
+
+// ---------- 15
+demos.s15 = () => {
+  const p = new Plot($("#c15"));
+  const Ts = [2, 4, 8, 16, 32];
+  bindOutputs($("#s15")); onInputs(["s15T", "s15n"], () => draw());
+  function draw() {
+    const T = Ts[val("s15T")], n = val("s15n"), df = 1 / T; $("#o15T").textContent = T + " s";
+    if (p.begin([-3.2, 3.2], [-0.3, 1.12])) { p.axes({ xt: [-3, -2, -1, 0, 1, 2, 3], yt: [0, 0.5, 1], yd: 1, xl: "f（Hz）", zero: true });
+      p.fn(sinc, tok("--spec2"), { w: 2, dash: [6, 4] });
+      for (let k = -Math.floor(3.2 * T); k <= Math.floor(3.2 * T); k++) { const f = k * df; p.stem(f, sinc(f) * df, tok("--accent"), { w: 2.4, r: 2.6 }); p.dot(f, sinc(f), tok("--spec"), T > 8 ? 2.4 : 4); }
+      const fn = n * df; p.vline(fn, tok("--dc"), [4, 3], 1.6); p.dot(fn, sinc(fn), tok("--dc"), 6); p.stem(fn, sinc(fn) * df, tok("--dc"), { w: 3.4, r: 4 });
+      p.text(p.L + 6, 10, "綠點：X_T(fₙ)　綠色短桿：cₙ = X_T(fₙ)·Δf　虛線：X_T(f)", tok("--ink"), { px: true, size: 12 }); }
+    const fn = n * df, X = sinc(fn);
+    $("#r15").innerHTML = `T = ${T} s → Δf = 1/T = <b>${fmt(df, 4)} Hz</b>；第 n = ${n} 項 fₙ = ${fmt(fn, 4)} Hz<br>X_T(fₙ) = <b>${fmt(X, 4)}</b>　cₙ = X_T(fₙ)Δf = <b>${fmt(X * df, 4)}</b>　cₙ/Δf = ${fmt(X, 4)}（不隨 T 改變）`;
+  }
+  return draw;
+};
+
+// ---------- 16
+demos.s16 = () => {
+  const pf = new Plot($("#c16a")), pt = new Plot($("#c16b"), { t: 18, b: 24 });
+  bindOutputs($("#s16")); onInputs(["s16T"], () => draw());
+  function draw() {
+    const T = val("s16T"), df = 1 / T;
+    if (pf.begin([-3.2, 3.2], [-0.3, 1.12])) { pf.axes({ xt: [-3, -2, -1, 0, 1, 2, 3], yt: [0, 1], xl: "f（Hz）", zero: true });
+      const c = pf.c; c.save(); c.globalAlpha = 0.55; c.fillStyle = tok("--spec2");
+      for (let k = -Math.floor(3.2 * T); k <= Math.floor(3.2 * T); k++) { const f = k * df, y = sinc(f), x0 = pf.X(f - df / 2), x1 = pf.X(f + df / 2); c.fillRect(Math.min(x0, x1), Math.min(pf.Y(0), pf.Y(y)), Math.abs(x1 - x0) - (T < 10 ? 1 : 0), Math.abs(pf.Y(y) - pf.Y(0))); }
+      c.restore(); pf.fn(sinc, tok("--spec"), { w: 2.2 });
+      pf.text(pf.L + 6, 10, "長條：X_T(fₙ)·Δf（黎曼和）　曲線：X(f) = sinc(f)", tok("--ink"), { px: true, size: 12 }); }
+    if (pt.begin([-20, 20], [-0.2, 1.3])) { pt.axes({ xt: [-20, -10, 0, 10, 20], yt: [0, 1], xl: "t（s）" });
+      const xs = [], ys = []; for (let i = 0; i <= 4000; i++) { const t = -20 + 40 * i / 4000, r = ((t % T) + T * 1.5) % T - T / 2; xs.push(t); ys.push(Math.abs(r) <= 0.5 ? 1 : 0); }
+      pt.path(xs, ys, tok("--sig"), { w: 2 }); pt.text(pt.L + 6, 9, "時間域：x_T(t) 是以 T 為週期的延拓", tok("--ink"), { px: true, size: 12 }); }
+    let copies = 0; for (let k = 1; k * T <= 20; k++) copies += 2;
+    $("#r16").innerHTML = `T = <b>${fmt(T, 1)} s</b>　Δf = <b>${fmt(df, 4)} Hz</b>　視窗內週期副本：<b>${copies}</b> 個<br>${copies === 0 ? "副本全部移出視窗：只剩原本的脈衝，長條也趨近連續曲線" : "T 越大，副本越遠、長條越細"}`;
+  }
+  return draw;
+};
+
+// ---------- 17
+demos.s17 = () => {
+  const pc = new Plot($("#c17a"), { l: 10, r: 10, t: 10, b: 10 }), pm = new Plot($("#c17b"), { t: 18, b: 24 });
+  bindOutputs($("#s17")); onInputs(["s17f", "s17t"], () => draw());
+  function draw() {
+    const f1 = val("s17f"), tau = val("s17t"), mag = sinc(f1), ph = -TAU * f1 * tau, re = mag * Math.cos(ph), im = mag * Math.sin(ph);
+    if (pc.begin([-1.25, 1.25], [-1.25, 1.25], { equal: true })) {
+      pc.circle(0, 0, 1, tok("--grid"), 1.4); pc.arrow(-1.2, 0, 1.2, 0, tok("--axis"), { w: 1.3, hs: 7 }); pc.arrow(0, -1.2, 0, 1.2, tok("--axis"), { w: 1.3, hs: 7 });
+      pc.text(1.18, 0.09, "Re", tok("--muted"), { align: "right", size: 13 }); pc.text(0.06, 1.15, "Im", tok("--muted"), { size: 13 });
+      if (Math.hypot(re, im) > 0.02) { pc.arrow(0, 0, re, im, tok("--spec"), { w: 3, hs: 11 }); const a = Math.atan2(im, re); if (Math.abs(a) > 0.02) pc.arc(0, 0, 0.25, Math.min(0, a), Math.max(0, a), tok("--phase"), 2.4); }
+      pc.dot(re, im, tok("--spec"), 5); pc.text(re + (re >= 0 ? 0.06 : -0.06), im + 0.08, "X(f₁)", tok("--ink"), { size: 13, align: re >= 0 ? "left" : "right" });
+      pc.text(-1.2, -1.15, "複平面", tok("--muted"), { size: 12 }); }
+    if (pm.begin([-3, 3], [-0.3, 1.15])) { pm.axes({ xt: [-3, -2, -1, 0, 1, 2, 3], yt: [0, 1], xl: "f（Hz）", zero: true });
+      pm.fn(f => Math.abs(sinc(f)), tok("--spec"), { w: 2.2 }); pm.vline(f1, tok("--dc"), [4, 3], 1.6); pm.dot(f1, Math.abs(mag), tok("--dc"), 5);
+      pm.text(pm.L + 6, 9, "|X(f)|（不受 τ 影響）", tok("--ink"), { px: true, size: 12 }); }
+    const A = Math.atan2(im, re);
+    $("#r17").innerHTML = `X(f₁) = sinc(f₁)·e^(−j2πf₁τ) = <b>${fmt(re, 3)} ${im < 0 ? "−" : "+"} j${fmt(Math.abs(im), 3)}</b><br>|X(f₁)| = <b>${fmt(Math.abs(mag), 3)}</b>　φ(f₁) = <b>${Math.hypot(re, im) < 1e-9 ? "未定義" : fmt(deg(A), 1) + "°"}</b>`;
+  }
+  return draw;
+};
+
+// ---------- 18
+demos.s18 = () => {
+  const pt = new Plot($("#c18a"), { t: 18, b: 24 }), pf = new Plot($("#c18b"), { t: 18, b: 24 }), pp = new Plot($("#c18c"), { t: 18, b: 24 });
+  bindOutputs($("#s18")); onInputs(["s18T", "s18t"], () => draw());
+  function draw() {
+    const T = val("s18T"), tau = val("s18t"), X = f => T * sinc(f * T);
+    if (pt.begin([-2.5, 2.5], [-0.2, 1.4])) { pt.axes({ xt: [-2, -1, 0, 1, 2], yt: [0, 1], xl: "t（s）" });
+      pt.path([-2.5, tau - T / 2, tau - T / 2, tau + T / 2, tau + T / 2, 2.5], [0, 0, 1, 1, 0, 0], tok("--sig"), { w: 2.4 });
+      pt.text(pt.L + 6, 9, "時間域：x(t − τ)", tok("--ink"), { px: true, size: 12 }); }
+    if (pf.begin([-4, 4], [-0.8, 3.3])) { pf.axes({ xt: [-4, -3, -2, -1, 0, 1, 2, 3, 4], yt: [0, 1, 2, 3], xl: "f（Hz）", zero: true });
+      pf.fn(f => Math.abs(X(f)), tok("--spec2"), { w: 2, dash: [6, 4] });
+      if (Math.abs(tau) < 1e-9) pf.fn(X, tok("--spec"), { w: 2.6 }); else pf.fn(f => X(f) * Math.cos(-TAU * f * tau), tok("--spec"), { w: 2.2 });
+      for (let k = 1; k / T <= 4; k++) { pf.dot(k / T, 0, tok("--spec"), 3.6, true); pf.dot(-k / T, 0, tok("--spec"), 3.6, true); }
+      pf.text(pf.L + 6, 9, Math.abs(tau) < 1e-9 ? "實線：X(f) = T sinc(fT)（實值，有負旁瓣）　虛線：|X(f)|" : "實線：Re X(f)　虛線：|X(f)|（與 τ = 0 時相同）", tok("--ink"), { px: true, size: 12 }); }
+    if (pp.begin([-4, 4], [-PI * 1.15, PI * 1.15])) { pp.axes({ xt: [-4, -2, 0, 2, 4], yt: [-PI, 0, PI], yf: v => (v > 0 ? "π" : v < 0 ? "−π" : "0"), xl: "f（Hz）", zero: true });
+      const xs = [], ys = []; for (let i = 0; i <= 1600; i++) { const f = -4 + 8 * i / 1600, z = X(f); xs.push(f); ys.push(Math.abs(z) < 1e-6 ? NaN : wrap(-TAU * f * tau + (z < 0 ? PI : 0))); }
+      const c = pp.c; pp.clip(() => { c.fillStyle = tok("--phase"); xs.forEach((f, i) => { if (!isNaN(ys[i])) c.fillRect(pp.X(f) - 0.8, pp.Y(ys[i]) - 0.8, 1.6, 1.6); }); });
+      pp.text(pp.L + 6, 9, "相位 φ(f)（mod 2π）：延遲 τ 讓相位隨 f 線性變化", tok("--ink"), { px: true, size: 12 }); }
+    $("#r18").innerHTML = `X(0) = T = <b>${fmt(T, 2)}</b>　第一零點 f = ±1/T = <b>±${fmt(1 / T, 3)} Hz</b>　主瓣寬 2/T = <b>${fmt(2 / T, 3)} Hz</b><br>延遲 τ = ${fmt(tau, 2)} s：乘上 e^(−j2πfτ)，|X(f)| 不變，只改相位`;
+  }
+  return draw;
+};
+
+// ---------- 19 (animated radar)
+demos.s19 = () => {
+  const p = new Plot($("#c19"), { l: 10, r: 10, t: 10, b: 10 });
+  bindOutputs($("#s19")); onInputs(["s19R", "s19v", "s19l"], () => readout());
+  let ph = 0;
+  function readout() {
+    const R = val("s19R"), v = val("s19v"), lam = val("s19l") / 1000, c = 299792458, tau = 2 * R / c, fd = 2 * v / lam;
+    $("#r19").innerHTML = `τ = 2R/c = <b>${fmt(tau * 1e9, 1)} ns</b>　|f_D| ≈ 2|v_r|/λ = <b>${fmt(Math.abs(fd), 1)} Hz</b>（${v > 0 ? "靠近" : v < 0 ? "遠離" : "靜止"}；正負號依慣例）<br><span class="muted">只是代入公式的換算；R 不是由傅立葉轉換直接得到，需要適合的波形與延遲估計方法。</span>`;
+  }
+  readout();
+  return (dt = 0) => {
+    ph = (ph + dt * 0.00045) % 1;
+    if (!p.begin([0, 10], [0, 6])) return;
+    const R = val("s19R"), v = val("s19v"), tx = 2.6 + 6.3 * R / 150, c = p.c, yT = 4.45, yE = 3.0;
+    c.save(); c.strokeStyle = tok("--ink"); c.lineWidth = 2.4; c.beginPath(); c.moveTo(p.X(1), p.Y(2.75)); c.lineTo(p.X(1), p.Y(3.55)); c.moveTo(p.X(0.72), p.Y(2.75)); c.lineTo(p.X(1.28), p.Y(2.75)); c.stroke(); c.restore();
+    p.arc(1, 3.85, 0.42, PI * 1.1, PI * 1.9, tok("--ink"), 2.8);
+    p.text(1, 2.35, "單站雷達", tok("--ink"), { align: "center", size: 12.5 });
+    const cw = 0.55; c.save(); c.fillStyle = tok("--panel"); c.strokeStyle = tok("--muted"); c.lineWidth = 1.8;
+    c.beginPath(); c.roundRect(p.X(tx - cw), p.Y(3.95), p.X(tx + cw) - p.X(tx - cw), p.Y(3.35) - p.Y(3.95), 6); c.fill(); c.stroke();
+    c.beginPath(); c.roundRect(p.X(tx - 0.3), p.Y(4.3), p.X(tx + 0.3) - p.X(tx - 0.3), p.Y(3.95) - p.Y(4.3), 5); c.fill(); c.stroke(); c.restore();
+    p.dot(tx - 0.32, 3.3, tok("--ink"), 5); p.dot(tx + 0.32, 3.3, tok("--ink"), 5);
+    if (Math.abs(v) > 0.01) p.arrow(tx, 4.8, tx + (v > 0 ? -0.8 : 0.8), 4.8, tok("--ink"), { w: 2, hs: 8 });
+    p.text(tx, 5.3, "目標 v_r", tok("--ink"), { align: "center", size: 12.5 });
+    const x0 = 1.6, x1 = tx - 0.75;
+    p.path([x0, x1], [yT, yT], tok("--sig"), { w: 1.2, dash: [3, 4] }); p.path([x0, x1], [yE, yE], tok("--echo"), { w: 1.2, dash: [3, 4] });
+    const go = ph < 0.5, u = go ? ph * 2 : (ph - 0.5) * 2, px = go ? x0 + (x1 - x0) * u : x1 - (x1 - x0) * u, py = go ? yT : yE, col = go ? tok("--sig") : tok("--echo");
+    const wl = 0.5, k = go ? 1 : 1.0 + v / 60; const xs = [], ys = [];
+    for (let i = 0; i <= 80; i++) { const s = (i / 80 - 0.5) * wl; xs.push(px + s); ys.push(py + 0.22 * Math.exp(-((s / (wl / 3)) ** 2)) * Math.cos(TAU * 3.2 * k * s / wl * 2)); }
+    p.path(xs, ys, col, { w: 2.4 });
+    p.text(x0, yT + 0.45, "發射", tok("--sig"), { size: 12.5 }); p.text(x0, yE - 0.45, "回波（延遲 τ；運動 → f_D）", tok("--echo"), { size: 12.5 });
+    p.arrow(1, 1.2, tx, 1.2, tok("--muted"), { both: true, w: 1.4, hs: 7 }); p.text((1 + tx) / 2, 0.75, "R（往返路徑 2R）", tok("--muted"), { align: "center", size: 12.5 });
+    p.text(9.9, 5.7, "示意動畫", tok("--muted"), { align: "right", size: 11.5 });
+  };
+};
+
+// ---------- 22 (A3)
+demos.s22 = () => {
+  const pc = new Plot($("#c22a"), { l: 10, r: 10, t: 10, b: 10 }), pl = new Plot($("#c22b"), { t: 18, b: 24 });
+  bindOutputs($("#s22")); onInputs(["s22R"], () => draw());
+  function draw() {
+    const R = val("s22R"), phi = -4 * PI * R, w = wrap(phi), base = ((R % 0.5) + 0.5) % 0.5;
+    if (pc.begin([-1.5, 1.5], [-1.3, 1.3], { equal: true })) {
+      pc.circle(0, 0, 1, tok("--phase"), 2.2); pc.path([-1.15, 1.15], [0, 0], tok("--axis"), { w: 1 }); pc.path([0, 0], [-1.15, 1.15], tok("--axis"), { w: 1 });
+      pc.text(1.08, 0, "0", tok("--muted"), { mono: true, size: 12 }); pc.text(0, 1.17, "π/2", tok("--muted"), { mono: true, size: 12, align: "center" }); pc.text(-1.08, 0, "π", tok("--muted"), { mono: true, size: 12, align: "right" });
+      pc.arrow(0, 0, Math.cos(w), Math.sin(w), tok("--phase"), { w: 2.6, hs: 10 }); pc.dot(Math.cos(w), Math.sin(w), tok("--phase"), 6);
+      pc.text(-1.45, -1.2, "相位圓（mod 2π）", tok("--muted"), { size: 12 }); }
+    if (pl.begin([0, 3], [-0.6, 1])) { pl.axes({ xt: [0, 0.5, 1, 1.5, 2, 2.5, 3], xd: 1, yt: [], grid: true, xl: "R / λ" });
+      for (let r = base; r <= 3 + 1e-9; r += 0.5) pl.dot(r, 0, tok("--phase"), 6, Math.abs(r - R) > 1e-6);
+      pl.dot(R, 0, tok("--echo"), 6); pl.text(pl.L + 6, 9, "實心紅：目前 R；空心紫：相位完全相同的其他 R（間隔 λ/2）", tok("--ink"), { px: true, size: 12 }); }
+    $("#r22").innerHTML = `Δφ = −4πR/λ = <b>${fmt(phi, 3)} rad</b>　mod 2π → <b>${fmt(deg(w), 1)}°</b><br>R、R ± λ/2、R ± λ … 的相位都一樣：單一 CW 頻率的相位無法唯一決定距離`;
+  }
+  return draw;
+};
+
+// ------------------------------------------------------------------ reveal (A1, A2)
+$$("[data-rev]").forEach(b => b.addEventListener("click", () => {
+  const lines = $$(".reveal-line", $("#" + b.dataset.rev)), act = b.dataset.act;
+  if (act === "all") lines.forEach(l => l.classList.remove("off"));
+  else if (act === "reset") lines.forEach((l, i) => l.classList.toggle("off", i > 0));
+  else { const nx = lines.find(l => l.classList.contains("off")); if (nx) nx.classList.remove("off"); }
+}));
+["s20", "s21"].forEach(id => $$(".reveal-line", $("#" + id)).forEach((l, i) => i > 0 && l.classList.add("off")));
+
+// ------------------------------------------------------------------ deck controller
+const slides = $$(".slide"), N = slides.length;
+const notes = JSON.parse($("#notes-data").textContent);
+let cur = 0, redraw = null, anim = null, last = 0;
+
+function stopAnim() { if (anim) cancelAnimationFrame(anim); anim = null; }
+function startAnim(fn) { stopAnim(); if (reduceMotion) { fn(0); return; } last = performance.now(); const loop = now => { fn(now - last); last = now; anim = requestAnimationFrame(loop); }; anim = requestAnimationFrame(loop); }
+
+function show(i, push = true) {
+  i = Math.max(0, Math.min(N - 1, i));
+  slides[cur].hidden = true; cur = i; const s = slides[cur]; s.hidden = false;
+  $("#stage").scrollTop = 0;
+  const ch = s.dataset.chapter; $("#chap").textContent = ch; $("#chap").classList.toggle("appx", ch.startsWith("Appendix"));
+  $("#count").textContent = `${i + 1} / ${N}`; $("#prog").style.width = `${(i + 1) / N * 100}%`;
+  $("#prev").disabled = i === 0; $("#next").disabled = i === N - 1;
+  $("#notesTitle").textContent = `第 ${i < 19 ? i + 1 : "A" + (i - 18)} 頁｜${s.dataset.title}`; $("#notesBody").textContent = notes[i] || "";
+  if (push && location.hash !== "#" + s.id) history.replaceState(null, "", "#" + s.id);
+  stopAnim(); redraw = null;
+  const d = demos[s.id];
+  if (d) { requestAnimationFrame(() => {
+    if (!inited[s.id]) inited[s.id] = d();
+    redraw = inited[s.id];
+    if (s.id === "s1" || s.id === "s19") startAnim(redraw); else redraw();
+  }); }
+  $$("#ovGrid button").forEach((b, k) => b.setAttribute("aria-current", k === i));
+}
+function go(d) { show(cur + d); }
+$("#prev").addEventListener("click", () => go(-1));
+$("#next").addEventListener("click", () => go(1));
+$$("[data-go]").forEach(b => b.addEventListener("click", () => show(slides.findIndex(s => s.id === b.dataset.go))));
+
+function toggleNotes(force) { const n = $("#notes"), on = force ?? n.hidden; n.hidden = !on; $("#btnNotes").setAttribute("aria-pressed", on); }
+function toggleOverview(force) { const o = $("#overview"), on = force ?? o.hidden; o.hidden = !on; if (on) $("#ovGrid button[aria-current='true']")?.focus(); }
+async function toggleFs() { try { if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); } catch (e) { /* not available in this view */ } }
+$("#btnNotes").addEventListener("click", () => toggleNotes());
+$("#btnOverview").addEventListener("click", () => toggleOverview());
+$("#ovClose").addEventListener("click", () => toggleOverview(false));
+$("#btnFs").addEventListener("click", toggleFs);
+slides.forEach((s, k) => { const b = document.createElement("button"); b.innerHTML = `<span class="k">${k < 19 ? String(k + 1).padStart(2, "0") : "A" + (k - 18)} · ${s.dataset.chapter}</span><span class="tt"></span>`;
+  b.querySelector(".tt").textContent = s.dataset.title; b.addEventListener("click", () => { toggleOverview(false); show(k); }); $("#ovGrid").appendChild(b); });
+
+document.addEventListener("keydown", e => {
+  const t = e.target, inField = t.matches && t.matches("input, select, textarea");
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (inField && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " ", "Home", "End", "PageUp", "PageDown"].includes(e.key)) return;
+  if (["ArrowRight", "PageDown", " "].includes(e.key)) { e.preventDefault(); go(1); }
+  else if (["ArrowLeft", "PageUp"].includes(e.key)) { e.preventDefault(); go(-1); }
+  else if (e.key === "Home") show(0); else if (e.key === "End") show(N - 1);
+  else if (e.key === "n" || e.key === "N") toggleNotes();
+  else if (e.key === "o" || e.key === "O") toggleOverview();
+  else if (e.key === "f" || e.key === "F") toggleFs();
+  else if (e.key === "Escape") { toggleOverview(false); toggleNotes(false); }
+});
+// swipe on touch screens
+let sx = null; $("#stage").addEventListener("touchstart", e => { sx = e.touches[0].clientX; }, { passive: true });
+$("#stage").addEventListener("touchend", e => { if (sx === null || e.target.closest("canvas, input, select")) { sx = null; return; } const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 70) go(dx < 0 ? 1 : -1); sx = null; });
+
+const rerender = () => { if (redraw && !anim) redraw(); };
+new ResizeObserver(rerender).observe($("#stage"));
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", rerender);
+new MutationObserver(rerender).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+window.addEventListener("hashchange", () => { const k = slides.findIndex(s => "#" + s.id === location.hash); if (k >= 0 && k !== cur) show(k, false); });
+document.fonts && document.fonts.ready.then(rerender);
+
+const start = slides.findIndex(s => "#" + s.id === location.hash);
+slides.forEach(s => (s.hidden = true));
+cur = Math.max(0, start); slides[cur].hidden = false; show(cur, false);
+})();
+</script>

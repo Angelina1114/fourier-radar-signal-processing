@@ -1,0 +1,308 @@
+{
+ "s03_x": {
+  "latex": "x(t)=\\sin(2\\pi\\cdot 100\\,t)+0.5\\,\\sin(2\\pi\\cdot 300\\,t)",
+  "pt": 26,
+  "w": 5.922,
+  "h": 0.36
+ },
+ "s05_main": {
+  "latex": "x(t)=A\\cos(2\\pi f t+\\varphi)",
+  "pt": 32,
+  "w": 4.168,
+  "h": 0.442
+ },
+ "s06_s": {
+  "latex": "s(t)=A\\cos(2\\pi f t)",
+  "pt": 27,
+  "w": 2.798,
+  "h": 0.373
+ },
+ "s06_r": {
+  "latex": "r(t)=A_r\\cos\\!\\big[2\\pi f\\,(t-\\tau)\\big]",
+  "pt": 27,
+  "w": 3.815,
+  "h": 0.417
+ },
+ "s06_r2": {
+  "latex": "r(t)=A_r\\cos(2\\pi f t-2\\pi f\\tau)",
+  "pt": 27,
+  "w": 4.208,
+  "h": 0.373
+ },
+ "s06_dphi": {
+  "latex": "\\Delta\\varphi=-2\\pi f\\tau \\pmod{2\\pi}",
+  "pt": 30,
+  "w": 4.078,
+  "h": 0.413
+ },
+ "s07_per": {
+  "latex": "x(t+T_0)=x(t)",
+  "pt": 28,
+  "w": 2.508,
+  "h": 0.387
+ },
+ "s07_f0": {
+  "latex": "f_0=\\frac{1}{T_0},\\qquad \\omega_0=\\frac{2\\pi}{T_0}",
+  "pt": 27,
+  "w": 3.232,
+  "h": 0.817
+ },
+ "s07_fn": {
+  "latex": "f_n=n\\,f_0",
+  "pt": 27,
+  "w": 1.37,
+  "h": 0.34
+ },
+ "s08_fs": {
+  "latex": "x(t)\\sim a_0+\\sum_{n=1}^{\\infty}\\Big[a_n\\cos(n\\omega_0 t)+b_n\\sin(n\\omega_0 t)\\Big]",
+  "pt": 28,
+  "w": 6.792,
+  "h": 0.665
+ },
+ "s09_a0": {
+  "latex": "a_0=\\frac{1}{T_0}\\int_0^{T_0}x(t)\\,dt",
+  "pt": 30,
+  "w": 2.922,
+  "h": 0.907
+ },
+ "s09_ex": {
+  "latex": "x(t)=3+2\\sin(2\\pi\\cdot 100\\,t)\\;\\;\\Longrightarrow\\;\\; a_0=3",
+  "pt": 26,
+  "w": 5.897,
+  "h": 0.36
+ },
+ "s10_ip": {
+  "latex": "\\langle u,v\\rangle=\\int_0^{T_0}u(t)\\,v(t)\\,dt",
+  "pt": 28,
+  "w": 3.493,
+  "h": 0.445
+ },
+ "s10_orth": {
+  "latex": "\\langle u,v\\rangle=0",
+  "pt": 26,
+  "w": 1.395,
+  "h": 0.36
+ },
+ "s10_cc": {
+  "latex": "\\int_0^{T_0}\\cos(m\\omega_0 t)\\cos(n\\omega_0 t)\\,dt=\\begin{cases}0, & m\\neq n\\\\[4pt] \\dfrac{T_0}{2}, & m=n\\geq 1\\end{cases}",
+  "pt": 25,
+  "w": 6.442,
+  "h": 1.253
+ },
+ "s11_1": {
+  "latex": "x(t)=a_0+\\sum_{k=1}^{\\infty}\\Big[a_k\\cos(k\\omega_0 t)+b_k\\sin(k\\omega_0 t)\\Big]",
+  "pt": 25,
+  "w": 6.005,
+  "h": 0.593
+ },
+ "s11_3": {
+  "latex": "\\int_0^{T_0}x(t)\\cos(n\\omega_0 t)\\,dt=a_n\\cdot\\frac{T_0}{2}",
+  "pt": 26,
+  "w": 4.232,
+  "h": 0.733
+ },
+ "s11_an": {
+  "latex": "a_n=\\frac{2}{T_0}\\int_0^{T_0}x(t)\\cos(n\\omega_0 t)\\,dt",
+  "pt": 26,
+  "w": 4.03,
+  "h": 0.787
+ },
+ "s11_bn": {
+  "latex": "b_n=\\frac{2}{T_0}\\int_0^{T_0}x(t)\\sin(n\\omega_0 t)\\,dt",
+  "pt": 26,
+  "w": 3.955,
+  "h": 0.787
+ },
+ "s12_id": {
+  "latex": "a_n\\cos(n\\omega_0 t)+b_n\\sin(n\\omega_0 t)=A_n\\cos(n\\omega_0 t+\\varphi_n)",
+  "pt": 27,
+  "w": 7.232,
+  "h": 0.373
+ },
+ "s12_ab": {
+  "latex": "a_n=A_n\\cos\\varphi_n,\\qquad b_n=-A_n\\sin\\varphi_n",
+  "pt": 26,
+  "w": 5.322,
+  "h": 0.333
+ },
+ "s12_A": {
+  "latex": "A_n=\\sqrt{a_n^2+b_n^2}",
+  "pt": 26,
+  "w": 2.068,
+  "h": 0.415
+ },
+ "s12_phi": {
+  "latex": "\\varphi_n=\\operatorname{atan2}(-b_n,\\,a_n)\\quad (A_n>0)",
+  "pt": 26,
+  "w": 4.64,
+  "h": 0.36
+ },
+ "s13_x": {
+  "latex": "x(t)=2+3\\cos(2\\pi\\cdot 100\\,t)+4\\sin(2\\pi\\cdot 300\\,t)",
+  "pt": 27,
+  "w": 6.693,
+  "h": 0.373
+ },
+ "s13_par": {
+  "latex": "f_0=100\\ \\mathrm{Hz};\\qquad a_0=2,\\quad a_1=3,\\quad b_3=4",
+  "pt": 25,
+  "w": 6.035,
+  "h": 0.313
+ },
+ "s15_xT": {
+  "latex": "x_T(t)=\\sum_{n\\in\\mathbb{Z}}c_n\\,e^{\\,j2\\pi f_n t},\\qquad f_n=\\frac{n}{T}",
+  "pt": 26,
+  "w": 4.92,
+  "h": 0.65
+ },
+ "s15_cn": {
+  "latex": "c_n=\\frac{1}{T}\\int_{-T/2}^{T/2}x_T(t)\\,e^{-j2\\pi f_n t}\\,dt",
+  "pt": 26,
+  "w": 4.108,
+  "h": 0.73
+ },
+ "s15_df": {
+  "latex": "\\Delta f=\\frac{1}{T}",
+  "pt": 26,
+  "w": 1.212,
+  "h": 0.73
+ },
+ "s15_XTf": {
+  "latex": "X_T(f)=\\int_{-T/2}^{T/2}x(t)\\,e^{-j2\\pi f t}\\,dt",
+  "pt": 26,
+  "w": 4.133,
+  "h": 0.525
+ },
+ "s15_res": {
+  "latex": "c_n=X_T(f_n)\\,\\Delta f",
+  "pt": 30,
+  "w": 2.705,
+  "h": 0.413
+ },
+ "s16_sum": {
+  "latex": "x_T(t)=\\sum_{n\\in\\mathbb{Z}}X_T(f_n)\\,e^{\\,j2\\pi f_n t}\\,\\Delta f",
+  "pt": 26,
+  "w": 4.332,
+  "h": 0.555
+ },
+ "s16_inv": {
+  "latex": "x(t)=\\int_{-\\infty}^{\\infty}X(f)\\,e^{\\,j2\\pi f t}\\,df",
+  "pt": 28,
+  "w": 3.96,
+  "h": 0.45
+ },
+ "s16_fwd": {
+  "latex": "X(f)=\\int_{-\\infty}^{\\infty}x(t)\\,e^{-j2\\pi f t}\\,dt",
+  "pt": 28,
+  "w": 4.103,
+  "h": 0.45
+ },
+ "s17_euler": {
+  "latex": "e^{\\,j\\theta}=\\cos\\theta+j\\sin\\theta",
+  "pt": 26,
+  "w": 2.838,
+  "h": 0.4
+ },
+ "s17_polar": {
+  "latex": "X(f)=|X(f)|\\,e^{\\,j\\varphi(f)}",
+  "pt": 26,
+  "w": 3.073,
+  "h": 0.427
+ },
+ "s18_shift": {
+  "latex": "x(t-\\tau)\\;\\longleftrightarrow\\;X(f)\\,e^{-j2\\pi f\\tau}",
+  "pt": 28,
+  "w": 4.447,
+  "h": 0.448
+ },
+ "s18_rect": {
+  "latex": "x(t)=\\begin{cases}1, & |t|\\leq T/2\\\\ 0, & |t|>T/2\\end{cases}",
+  "pt": 25,
+  "w": 3.013,
+  "h": 0.998
+ },
+ "s18_ft": {
+  "latex": "X(f)=\\int_{-T/2}^{T/2}e^{-j2\\pi f t}\\,dt=T\\,\\operatorname{sinc}(fT)",
+  "pt": 26,
+  "w": 5.42,
+  "h": 0.525
+ },
+ "s18_sinc": {
+  "latex": "\\operatorname{sinc}(u)=\\frac{\\sin(\\pi u)}{\\pi u},\\qquad \\operatorname{sinc}(0)=1",
+  "pt": 25,
+  "w": 4.76,
+  "h": 0.733
+ },
+ "a1_cc": {
+  "latex": "\\cos A\\cos B=\\tfrac{1}{2}\\big[\\cos(A-B)+\\cos(A+B)\\big]",
+  "pt": 26,
+  "w": 6.162,
+  "h": 0.432
+ },
+ "a1_ss": {
+  "latex": "\\sin A\\sin B=\\tfrac{1}{2}\\big[\\cos(A-B)-\\cos(A+B)\\big]",
+  "pt": 26,
+  "w": 6.11,
+  "h": 0.432
+ },
+ "a1_k": {
+  "latex": "\\int_0^{T_0}\\cos(k\\omega_0 t)\\,dt=0\\qquad (k\\in\\mathbb{Z},\\ k\\neq 0)",
+  "pt": 26,
+  "w": 5.637,
+  "h": 0.412
+ },
+ "a1_sq": {
+  "latex": "\\int_0^{T_0}\\cos^2(n\\omega_0 t)\\,dt=\\int_0^{T_0}\\frac{1+\\cos(2n\\omega_0 t)}{2}\\,dt=\\frac{T_0}{2}\\qquad (n\\geq 1)",
+  "pt": 25,
+  "w": 7.993,
+  "h": 0.73
+ },
+ "a1_mn": {
+  "latex": "\\int_0^{T_0}\\cos(m\\omega_0 t)\\cos(n\\omega_0 t)\\,dt=\\tfrac12\\int_0^{T_0}\\cos\\big((m-n)\\omega_0 t\\big)dt+\\tfrac12\\int_0^{T_0}\\cos\\big((m+n)\\omega_0 t\\big)dt=0",
+  "pt": 25,
+  "w": 11.498,
+  "h": 0.432
+ },
+ "a2_SN": {
+  "latex": "S_N(t)=a_0+\\sum_{k=1}^{N}\\Big[a_k\\cos(k\\omega_0 t)+b_k\\sin(k\\omega_0 t)\\Big]",
+  "pt": 26,
+  "w": 6.473,
+  "h": 0.663
+ },
+ "a2_ip": {
+  "latex": "\\big\\langle S_N,\\cos(n\\omega_0 t)\\big\\rangle=a_n\\,\\frac{T_0}{2}\\qquad (N\\geq n)",
+  "pt": 26,
+  "w": 5.298,
+  "h": 0.733
+ },
+ "a2_cs": {
+  "latex": "\\big|\\langle S_N-x,\\cos(n\\omega_0 t)\\rangle\\big|\\leq\\|S_N-x\\|_2\\,\\|\\cos(n\\omega_0 t)\\|_2\\;\\xrightarrow[N\\to\\infty]{}\\;0",
+  "pt": 26,
+  "w": 8.475,
+  "h": 0.5
+ },
+ "a2_an": {
+  "latex": "a_n=\\frac{2}{T_0}\\big\\langle x,\\cos(n\\omega_0 t)\\big\\rangle",
+  "pt": 26,
+  "w": 3.085,
+  "h": 0.787
+ },
+ "a3_tau": {
+  "latex": "\\tau=\\frac{2R}{c}\\quad\\Longrightarrow\\quad R=\\frac{c\\,\\tau}{2}",
+  "pt": 26,
+  "w": 3.685,
+  "h": 0.738
+ },
+ "a3_phi": {
+  "latex": "\\Delta\\varphi=-2\\pi f_c\\,\\tau=-\\frac{4\\pi R}{\\lambda}\\pmod{2\\pi}",
+  "pt": 26,
+  "w": 5.092,
+  "h": 0.74
+ },
+ "a3_fd": {
+  "latex": "|f_D|\\approx\\frac{2\\,|v_r|}{\\lambda}\\qquad (|v_r|\\ll c)",
+  "pt": 26,
+  "w": 3.873,
+  "h": 0.767
+ }
+}

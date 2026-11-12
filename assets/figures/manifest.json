@@ -1,0 +1,82 @@
+{
+ "cover_time_frequency_radar": {
+  "w": 6.0,
+  "h": 4.6
+ },
+ "roadmap_radar_icon": {
+  "w": 1.9,
+  "h": 2.0
+ },
+ "signal_components_time": {
+  "w": 7.0,
+  "h": 4.6
+ },
+ "time_vs_spectrum": {
+  "w": 12.1,
+  "h": 3.6
+ },
+ "amplitude_frequency_phase": {
+  "w": 6.9,
+  "h": 5.45
+ },
+ "delay_phase_shift": {
+  "w": 6.3,
+  "h": 4.4
+ },
+ "period_harmonic_grid": {
+  "w": 6.4,
+  "h": 5.3
+ },
+ "square_wave_fourier_series": {
+  "w": 12.1,
+  "h": 2.95
+ },
+ "dc_offset": {
+  "w": 5.9,
+  "h": 4.8
+ },
+ "orthogonality_integrand": {
+  "w": 5.6,
+  "h": 5.3
+ },
+ "coefficient_extraction": {
+  "w": 4.5,
+  "h": 5.4
+ },
+ "coefficient_amplitude_phase": {
+  "w": 4.8,
+  "h": 4.6
+ },
+ "worked_example_spectra": {
+  "w": 12.1,
+  "h": 3.6
+ },
+ "periodic_vs_pulse": {
+  "w": 12.1,
+  "h": 2.75
+ },
+ "frequency_grid_spacing": {
+  "w": 4.4,
+  "h": 2.5
+ },
+ "riemann_sum_to_integral": {
+  "w": 5.0,
+  "h": 5.4
+ },
+ "ft_domain_map": {
+  "w": 5.2,
+  "h": 5.45
+ },
+ "rect_pulse_sinc": {
+  "w": 5.6,
+  "h": 5.35
+ },
+ "radar_summary": {
+  "w": 5.4,
+  "h": 5.4
+ },
+ "radar_round_trip_phase": {
+  "w": 6.0,
+  "h": 4.2
+ }
+}

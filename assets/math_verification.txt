@@ -1,0 +1,38 @@
+[PASS] S09 a0 = (1/T0)∫x dt for 3+2sin(2π100t): got 3.0 expected 3.0
+[PASS] S13 a0: got 2.0 expected 2.0
+[PASS] S13 (a1,b1,a2,b2,a3,b3): got [ 3. -0.  0. -0. -0.  4.] expected [3, 0, 0, 0, 0, 4]
+[PASS] S13 A1, A3: got [3. 4.] expected [3, 4]
+[PASS] S13 φ1, φ3 (deg) via atan2(-bn, an): got [  0. -90.] expected [0, -90]
+[PASS] S13 no 200 Hz component (A2): got 0.0 expected 0.0
+[PASS] S12 an cos+bn sin = An cos(θ+φn): got [ 2.        2.0149    2.029598 ... -2.490265 -2.492344 -2.494175] expected [ 2.          2.01489975  2.02959801 ... -2.49026483 -2.49234439
+ -2.49417472]
+[PASS] S12 example An, φn(deg): got [  2.5      -36.869898] expected [2.5, -36.869898]
+[PASS] S10 ∫cos(ω0t)cos(2ω0t) = 0: got 0.0 expected 0.0
+[PASS] S10 ∫cos²(nω0t) = T0/2 (n=1,3): got [0.005 0.005] expected [0.005, 0.005]
+[PASS] A1 ∫sin·cos = 0 (m=n=2): got 0.0 expected 0.0
+[PASS] A1 ∫sin(2)sin(3) = 0: got -0.0 expected 0.0
+[PASS] S11 ∫x cos(ω0t) dt = a1 T0/2 with a1=3: got 0.015 expected 0.015
+[PASS] S06 cos[2πf(t−τ)] = cos(2πft − 2πfτ): got [0.309017 0.338738 0.368125 ... 0.24869  0.278991 0.309017] expected [0.30901699 0.33873792 0.36812455 ... 0.24868989 0.27899111 0.30901699]
+[PASS] S06 Δφ = −2πfτ = −72°: got -72.0 expected -72.0
+[PASS] S08 S_N(0)=0 (jump midpoint), S_N(±π/2)→±1: got [ 0.        0.999984 -0.999984] expected [0, 1, -1]
+[PASS] S18 X(f) = T sinc(fT), T=1.0: got [ 1.      +0.j  0.858394-0.j  0.      -0.j -0.151481-0.j -0.      +0.j] expected [ 1.00000000e+00  8.58393691e-01  3.89817183e-17 -1.51481240e-01
+ -3.89817183e-17]
+[PASS] S18 X(f) = T sinc(fT), T=2.0: got [ 2.      +0.j  1.009102+0.j  0.      -0.j -0.302962-0.j -0.      +0.j] expected [ 2.00000000e+00  1.00910230e+00  7.79634367e-17 -3.02962479e-01
+ -7.79634367e-17]
+[PASS] S18 normalized sinc: numpy.sinc(u)=sin(πu)/(πu): got 0.789542 expected 0.7895415417462579
+[PASS] S18 x(t−τ) ↔ X(f)e^{−j2πfτ}: got [ 0.869796-0.344377j -0.013698-0.108431j  0.189489+0.104173j] expected [ 0.86979594-0.34437657j -0.01369797-0.1084306j   0.18948923+0.10417259j]
+[PASS] S18 |X| unchanged by pure delay: got [0.935489 0.109292 0.216236] expected [0.93548928 0.1092924  0.21623621]
+[PASS] S18 X(f) real with negative side-lobe at f=1.5/T (T=1): got 1.0 expected 1.0
+[PASS] S15 c_0 = X_T(f_0)·Δf (T=4): got (0.250002+0j) expected (0.25000249999999996+0j)
+[PASS] S15 c_1 = X_T(f_1)·Δf (T=4): got (0.225081-0j) expected (0.22508084680160145-4.163336342344337e-17j)
+[PASS] S15 c_3 = X_T(f_3)·Δf (T=4): got (0.075025-0j) expected (0.0750245918989219-4.163336342344337e-17j)
+[PASS] S15 Δf = 1/T: got 0.25 expected 0.25
+[PASS] S15 notes c_n=(a_n−j b_n)/2 (S13 signal, n=3): got (-0-2j) expected -2j
+[PASS] S16 x(0.0) = ∫X(f)e^{j2πft}df: got 0.999493 expected 1.0
+[PASS] S16 x(0.5) = ∫X(f)e^{j2πft}df: got 0.499873 expected 0.5
+[PASS] S16 x(0.8) = ∫X(f)e^{j2πft}df: got 0.000325 expected 0.0
+[PASS] A3 R = cτ/2: got 7.3 expected 7.3
+[PASS] A3 −2πf_c τ = −4πR/λ: got -3059.933732 expected -3059.933732049455
+[PASS] A3 phase ambiguity: R and R+λ/2 give same phase mod 2π: got 6.260698 expected 6.260697854182318
+
+33 passed, 0 failed
