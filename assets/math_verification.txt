@@ -34,5 +34,20 @@
 [PASS] A3 R = cτ/2: got 7.3 expected 7.3
 [PASS] A3 −2πf_c τ = −4πR/λ: got -3059.933732 expected -3059.933732049455
 [PASS] A3 phase ambiguity: R and R+λ/2 give same phase mod 2π: got 6.260698 expected 6.260697854182318
+[PASS] Phys: mean of (A sin)^2 = A^2/2 (A=0.5): got 0.125 expected 0.125
+[PASS] Phys S13 Parseval mean x^2 = 16.5: got 16.5 expected 16.5
+[PASS] Phys S10 cross term averages to 0: got 0.0 expected 0.0
+[PASS] Phys S6 10 GHz wavelength ≈ 3 cm: got 0.029979 expected 0.03
+[PASS] Phys S6 ΔR=1.5 mm → |Δφ| = 4πΔR/λ (deg, λ=3 cm): got 36.0 expected 36.0
+[PASS] Phys S18 sinc zeros at ±1/T (T=1): got [0. 0.] expected [0, 0]
+[PASS] Phys S16 Parseval ∫|T sinc(fT)|² df = T (T=1): got 0.999949 expected 1.0
+[PASS] Phys S19 v = λ f_D / 2: got 12.0 expected 12.0
+[PASS] LA 90°: projection equals coordinates is True: got 1.0 expected 1.0
+[PASS] LA 60°: projection equals coordinates is False: got 0.0 expected 0.0
+[PASS] LA 90°: (c1, c2) = (1.2, 1.333): got [1.2      1.333333] expected [1.2, 1.3333333333333335]
+[PASS] LA 60°: (c1, c2, ĉ1, ĉ2) shown on page: got [0.58416  1.539601 1.2      1.904701] expected [0.58, 1.54, 1.2, 1.9]
+[PASS] S11 <x,cos ω0t>/T0 = 1.5: got 1.5 expected 1.5
+[PASS] S11 <x,sin 3ω0t>/T0 = 2: got 2.0 expected 2.0
+[PASS] S11 a0 = <x,1>/||1||² = 2: got 2.0 expected 2.0
 
-33 passed, 0 failed
+48 passed, 0 failed

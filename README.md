@@ -8,7 +8,7 @@
 主題是傅立葉分析的數學基礎、物理意義，以及雷達訊號處理的初步應用，範圍涵蓋訊號與頻率、振幅與相位、傅立葉級數、傅立葉轉換。
 
 - **簡報**：[`Fourier_Analysis_Radar_Ch1-4.pptx`](Fourier_Analysis_Radar_Ch1-4.pptx)，共 19 張主頁加 3 張 Appendix，附講者備註；另有 [PDF 預覽](Fourier_Analysis_Radar_Ch1-4.pdf)
-- **互動報告網頁**：[`web/`](web/)，共 24 頁：簡報的 22 頁，再加上兩頁導論（傅立葉分析是什麼、為什麼要在時間域與頻率域之間轉換）；每頁都有可操作的波形與頻譜示範
+- **互動報告網頁**：[`web/`](web/)，共 25 頁：簡報的 22 頁，再加上兩頁導論（傅立葉分析是什麼、為什麼要在時間域與頻率域之間轉換）與一頁線性代數觀點（為什麼要「乘上基底再積分」：正交投影）；每頁都有可操作的波形與頻譜示範，以及一個「物理意義」說明框
 - 所有圖都由公式精確繪製（[`assets/generate_figures.py`](assets/generate_figures.py)），公式以 LaTeX 排版；[`assets/math_verification.txt`](assets/math_verification.txt) 是數值驗算結果（33 項）
 - 本報告是理論與示意，沒有使用實測雷達資料
 
@@ -56,7 +56,7 @@ PDF 預覽：`osascript export_pdf.applescript <絕對路徑.pptx> <絕對路徑
 ## 互動網頁版（`web/`）
 | 檔案 | 內容 |
 |---|---|
-| `web/src.html` | 網頁原始檔：22 頁內容、互動示範、樣式（要改網頁就改這個） |
+| `web/src.html` | 網頁原始檔：25 頁內容、互動示範、物理意義說明、網站版新增頁的講者備註、樣式（要改網頁就改這個） |
 | `web/build_web.py` | 從 `build_deck.js` 抽出講者備註，產生 `fourier_talk.html` 與本機預覽用的 `preview.html` |
 | `web/fourier_talk.html` | 發布用的成品（已發布成 claude.ai 私人連結） |
 

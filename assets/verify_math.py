@@ -122,6 +122,44 @@ check("A3 −2πf_c τ = −4πR/λ", -2 * np.pi * fc * tau, -4 * np.pi * R / la
 check("A3 phase ambiguity: R and R+λ/2 give same phase mod 2π",
       np.mod(-4 * np.pi * R / lam, 2 * np.pi), np.mod(-4 * np.pi * (R + lam / 2) / lam, 2 * np.pi))
 
+# ---- Website additions: physical-meaning boxes and the linear-algebra page
+# sinusoid mean power A²/2
+tp = np.linspace(0, 1, 200001)
+check("Phys: mean of (A sin)^2 = A^2/2 (A=0.5)", integ((0.5 * np.sin(2 * np.pi * 7 * tp)) ** 2, tp), 0.125)
+# S13 Parseval: mean x² = a0² + ½Σ(an²+bn²) = 4 + 4.5 + 8
+x13 = 2 + 3 * np.cos(2 * np.pi * 100 * t) + 4 * np.sin(2 * np.pi * 300 * t)
+check("Phys S13 Parseval mean x^2 = 16.5", integ(x13 ** 2, t) / T0, 16.5, tol=1e-5)
+# orthogonal components: power of sum = sum of powers
+check("Phys S10 cross term averages to 0", integ(np.cos(w0 * t) * np.cos(2 * w0 * t), t) / T0, 0.0)
+# 10 GHz, target moves 1.5 mm -> round trip 3 mm -> phase change 36°
+lam10 = cl / 10e9
+check("Phys S6 10 GHz wavelength ≈ 3 cm", lam10, 0.03, tol=2e-4)
+check("Phys S6 ΔR=1.5 mm → |Δφ| = 4πΔR/λ (deg, λ=3 cm)", np.degrees(4 * np.pi * 1.5e-3 / 0.03), 36.0)
+# rect pulse main lobe width 2/T, FT Parseval ∫|X|² df = ∫|x|² dt = T
+check("Phys S18 sinc zeros at ±1/T (T=1)", [np.sinc(1.0), np.sinc(-1.0)], [0, 0])
+ff = np.linspace(-2000, 2000, 4000001)
+check("Phys S16 Parseval ∫|T sinc(fT)|² df = T (T=1)", integ(np.sinc(ff) ** 2, ff), 1.0, tol=2e-3)
+# Doppler: v = λ f_D / 2 is the inverse of |f_D| ≈ 2|v|/λ
+vr = 12.0
+check("Phys S19 v = λ f_D / 2", lam10 * (2 * vr / lam10) / 2, vr)
+# Linear-algebra page: projection = coordinate iff basis orthogonal (default x=(1.8,1.6), |e1|=1.5, |e2|=1.2)
+xv2 = np.array([1.8, 1.6])
+for deg_, want_same in ((90, True), (60, False)):
+    th_ = np.radians(deg_)
+    e1, e2 = np.array([1.5, 0.0]), 1.2 * np.array([np.cos(th_), np.sin(th_)])
+    coords = np.linalg.solve(np.column_stack([e1, e2]), xv2)
+    proj = np.array([xv2 @ e1 / (e1 @ e1), xv2 @ e2 / (e2 @ e2)])
+    check(f"LA {deg_}°: projection equals coordinates is {want_same}", float(np.allclose(coords, proj)), float(want_same))
+check("LA 90°: (c1, c2) = (1.2, 1.333)", np.linalg.solve(np.array([[1.5, 0], [0, 1.2]]), xv2), [1.2, 1.6 / 1.2])
+th60 = np.radians(60)
+e1, e2 = np.array([1.5, 0.0]), 1.2 * np.array([np.cos(th60), np.sin(th60)])
+check("LA 60°: (c1, c2, ĉ1, ĉ2) shown on page", [*np.linalg.solve(np.column_stack([e1, e2]), xv2), xv2 @ e1 / (e1 @ e1), xv2 @ e2 / (e2 @ e2)],
+      [0.58, 1.54, 1.20, 1.90], tol=5e-3)
+# S11 demo numbers: <x, cos ω0t> = 1.5 T0, <x, sin 3ω0t> = 2 T0, <x, 1> = 2 T0
+check("S11 <x,cos ω0t>/T0 = 1.5", integ(x13 * np.cos(w0 * t), t) / T0, 1.5, tol=1e-5)
+check("S11 <x,sin 3ω0t>/T0 = 2", integ(x13 * np.sin(3 * w0 * t), t) / T0, 2.0, tol=1e-5)
+check("S11 a0 = <x,1>/||1||² = 2", integ(x13, t) / T0, 2.0)
+
 lines.append(f"\n{len(lines) - fails} passed, {fails} failed")
 open(OUT, "w").write("\n".join(lines) + "\n")
 print("\n".join(lines))

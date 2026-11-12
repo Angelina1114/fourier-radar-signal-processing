@@ -121,6 +121,20 @@ table.rt th { color: var(--muted); font-weight: 500; }
 .pick .f { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; font-family: var(--f-mono); }
 .pick .f i { font-style: normal; font-weight: 700; margin-right: 4px; }
 .pick .f.u i { color: var(--sig); }
+.phys { margin: 12px 0 4px; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line); border-left: 4px solid var(--accent); background: var(--surface); font-size: 0.86em; line-height: 1.65; }
+.phys .ph-k { display: inline-block; font-size: 0.82em; font-weight: 700; color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 0 10px; margin-right: 8px; }
+#s11 .eq { padding: 0; }
+#s11 .eq mjx-container[display="true"] { margin: 0.12em 0 !important; }
+#s11 .reveal-line > p { margin: 4px 0 0 !important; }
+#s11 #c11a { height: 105px; } #s11 #c11b { height: 150px; } .rcol > .phys { font-size: 0.8em; }
+.rcol { display: grid; gap: 0; align-content: start; min-width: 0; }
+.cols.wide-l { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+@media (max-width: 920px) { .cols.wide-l { grid-template-columns: minmax(0, 1fr); } }
+.tblwrap { overflow-x: auto; margin: 6px 0 10px; }
+table.cmp { border-collapse: collapse; width: 100%; font-size: 0.8em; }
+table.cmp th, table.cmp td { border-bottom: 1px solid var(--line); padding: 4px 8px; text-align: left; vertical-align: middle; }
+table.cmp thead th { color: var(--accent); font-weight: 700; }
+table.cmp tbody th { color: var(--muted); font-weight: 600; white-space: nowrap; }
 .reveal-line { transition: opacity .25s; }
 .reveal-line.off { opacity: 0.12; }
 
@@ -149,7 +163,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
     <span class="brand hide-sm">傅立葉分析與雷達</span>
     <span class="chap" id="chap">導論</span>
     <div class="progress" aria-hidden="true"><i id="prog"></i></div>
-    <span class="count" id="count">1 / 24</span>
+    <span class="count" id="count">1 / 25</span>
   </header>
 
   <main class="stage" id="stage">
@@ -201,6 +215,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
         <li><b>兩種工具：</b>週期訊號用<b>傅立葉級數</b>（離散頻率 \(n f_0\)）；一般訊號用<b>傅立葉轉換</b>（連續頻率 \(f\)）</li>
       </ul>
       <div class="box"><b>類比（僅供直覺）：</b>像稜鏡把白光分成各種顏色的光，或把和弦拆成一個個音。分得開、也合得回去。</div>
+      <div class="phys"><span class="ph-k">物理意義</span>許多物理系統本來就「按頻率」反應：耳蝸不同位置對不同音高共振，收音機只對一個頻率調諧，彈簧和電路各有共振頻率。把訊號拆成頻率成分，等於用這些系統「實際感受」的方式來描述訊號。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>用正弦「拼」出一個波形</b><span class="tag">時間域 ＋ 頻率域 · ω₀ = 1</span></div>
@@ -229,6 +244,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       </ul>
       <div class="box key big">流程：時間域 → <span class="c-spec">轉到頻率域處理</span> → 轉回時間域</div>
       <p class="small muted">右邊是示意：雜訊用許多 200–490 Hz 的小正弦模擬，所以頻譜可以精確寫出；從取樣資料計算頻譜（DFT/FFT）是後續主題。</p>
+      <div class="phys"><span class="ph-k">物理意義</span>濾波器、放大器、電纜、空氣這類線性非時變系統，對正弦輸入只會<b>改變它的振幅和相位</b>，不會產生新的頻率。所以在頻率域裡，「訊號通過系統」只是每個頻率各乘上一個複數，這才是頻率域處理比較簡單的原因。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>雜訊中的訊號：在頻率域刪掉高頻，再轉回來</b><span class="tag">示意</span></div>
@@ -253,6 +269,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <div class="box big">問題：看合成波形，能直接讀出 100 Hz 與 300 Hz 嗎？</div>
       <div class="btns"><button class="btn" id="s3rev" aria-pressed="false">揭曉成分</button></div>
       <p id="s3ans" class="small" hidden>成分是 <b class="c-sig">100 Hz（振幅 1）</b> 與 <b class="c-sig">300 Hz（振幅 0.5）</b>：20 ms 內分別是 2 個與 6 個週期。只看合成曲線很難一眼拆出來，下一頁換成頻率域來看。</p>
+      <div class="phys"><span class="ph-k">物理意義</span>時間域就是儀器直接記錄到的東西：麥克風輸出的電壓、示波器上的曲線、雷達接收機的回波電壓，都是 x(t)。我們能直接量到的是時間域；頻率資訊要經過計算才看得到。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>拖動滑桿，看成分如何疊加</b><span class="tag">時間域 · 0–20 ms</span></div>
@@ -277,6 +294,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <p class="c-spec"><b>預設：100 Hz（振幅 1）、300 Hz（振幅 0.5）</b></p>
       <div class="box big c-acc">同一個訊號，可用不同觀點描述。</div>
       <p class="small muted">右下圖是<b>單邊振幅譜（成分示意，傅立葉級數意義）</b>：高度是各正弦成分的振幅，不是連續時間 FT 的函數值；純正弦的 FT 是 Dirac delta，不能當成普通函數的高度。</p>
+      <div class="phys"><span class="ph-k">物理意義</span>頻譜儀（spectrum analyzer）顯示的就是頻率域。聽起來 100 Hz 與 300 Hz 是兩個不同的音高；振幅決定強弱。振幅 A 的正弦平均功率正比於 A²/2，所以振幅 0.5 的成分只有振幅 1 的四分之一功率。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>改成分 → 兩個域同時更新</b><span class="tag">上：時間域　下：頻率域</span></div>
@@ -304,6 +322,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
         <li>\(\omega=2\pi f\)：角頻率（rad/s）</li>
       </ul>
       <p class="small muted">振幅＝高低；頻率＝每秒震盪幾次；相位＝相對水平位置（需要參考波）。\(90^\circ=\pi/2\)。</p>
+      <div class="phys"><span class="ph-k">物理意義</span><b>A</b> 是強度（平均功率 ∝ A²/2）；<b>f</b> 是每秒振盪幾次，決定音高或無線電頻道；<b>φ</b> 是波的「起跑時間」，只有和參考波比較才有意義。雷達量相位，就是拿回波和自己發射的參考波比較。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>一次只改一個參數</b><span class="tag">時間域 · 虛線＝參考 A=1, f=2 Hz, φ=0</span></div>
@@ -328,6 +347,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <div class="row"><b>展開</b><div class="eq">\[r(t)=A_r\cos(2\pi f t-2\pi f\tau)\]</div></div>
       <div class="box key"><div class="row"><b class="c-acc">結論</b><div class="eq">\[\Delta\varphi=-2\pi f\tau \pmod{2\pi}\]</div></div></div>
       <p class="big">時間延遲在固定頻率上表現為相位差。</p>
+      <div class="phys"><span class="ph-k">物理意義</span>電磁波以光速 c 傳播，走距離 d 要花 τ = d/c。延遲相同時，頻率越高、相位轉得越多（Δφ = −2πfτ）。例：10 GHz 雷達波長 3 cm，目標只要遠離 1.5 mm（來回多 3 mm = 0.1λ），回波相位就改變 36°，所以相位能感測極微小的位移。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>改延遲 τ，看相位怎麼走</b><span class="tag">時間域 ＋ 相位圓</span></div>
@@ -353,6 +373,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <div class="row"><b>第 \(n\) 次諧波</b><div class="eq">\[f_n=n\,f_0\]</div></div>
       <p>示例 \(f_0\) = 100 Hz：第 1、2、3 次諧波 = 100、200、300 Hz。</p>
       <div class="box note big">注意：某些諧波的係數可以是零。</div>
+      <div class="phys"><span class="ph-k">物理意義</span>吉他弦、管樂器的空氣柱只能以基頻的整數倍振動，這些振動模式就是諧波。同樣是 220 Hz 的音，小提琴和長笛聽起來不同，是因為各次諧波的強度不同，也就是「音色」。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>改基頻，看諧波格點移動</b><span class="tag">訊號：sin(ω₀t)+0.5 sin(3ω₀t)</span></div>
@@ -379,6 +400,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       </ul>
       <div class="box big">主結論：週期波形 = 不同諧波之和（在適當收斂意義下）</div>
       <p class="small muted">用「~」不用無條件等號：在連續點收斂到訊號，在跳躍點收斂到左右極限平均。</p>
+      <div class="phys"><span class="ph-k">物理意義</span>數位電路的時脈接近方波，含有大量奇次諧波（3、5、7… 倍頻），這是電路向外輻射高頻干擾（EMI）的原因之一。反過來，若傳輸通道只讓前幾個諧波通過，方波的邊緣就會變圓，跳躍處還會出現振鈴（Gibbs 現象）。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>增加項數 N，逼近方波</b><span class="tag">時間域 · ω₀=1, T₀=2π</span></div>
@@ -402,6 +424,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <p>例：</p>
       <div class="eq">\[x(t)=3+2\sin(2\pi\cdot 100\,t)\;\Longrightarrow\; a_0=3\]</div>
       <div class="box note big c-dc">DC = 0 Hz = 一週期平均值</div>
+      <div class="phys"><span class="ph-k">物理意義</span>直流分量就是平均值：電路的偏壓、感測器的零點偏移都是 DC。在雷達裡，靜止物體與天線洩漏的回波沒有都卜勒頻移，會集中在 0 Hz 附近，常先被當成雜波濾掉，才看得見會動的目標。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>改常數偏移 c，數值積分求平均</b><span class="tag">時間域 · 0–20 ms</span></div>
@@ -425,6 +448,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <p><b>三角基底正交：</b></p>
       <div class="eq">\[\int_0^{T_0}\cos(m\omega_0 t)\cos(n\omega_0 t)\,dt=\begin{cases}0, & m\neq n\\[2pt] \dfrac{T_0}{2}, & m=n\geq 1\end{cases}\]</div>
       <div class="box big">結論：正交性使我們能選出特定頻率。</div>
+      <div class="phys"><span class="ph-k">物理意義</span>正交就是「平均起來互不影響」。兩個不同頻率的成分疊加時，交叉項在一個週期內平均為 0，所以<b>總平均功率＝各成分功率相加</b>。Wi-Fi、4G/5G 用的 OFDM 讓許多子載波彼此正交，才能擠在同一段頻帶而不互相干擾。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>選兩個基底，看乘積面積</b><span class="tag">時間域 · 一個完整週期</span></div>
@@ -440,19 +464,56 @@ table.rt th { color: var(--muted); font-weight: 500; }
   </div>
 </section>
 
+<!-- ================================================================ 網站版新增：線性代數觀點 -->
+<section class="slide" id="la" data-chapter="Ch.3 傅立葉級數" data-title="為什麼要乘上基底再積分？（線性代數觀點）" data-extra="1" hidden>
+  <h2>為什麼要「乘上基底再積分」？——線性代數的正交投影</h2>
+  <div class="cols">
+    <div>
+      <p><b>先看 \(\mathbb R^n\)：</b>若 \(\mathbf e_1,\dots,\mathbf e_N\) 兩兩正交，且 \(\mathbf x=\sum_k c_k\mathbf e_k\)。想要 \(c_n\)，就讓兩邊和 \(\mathbf e_n\) 做內積：</p>
+      <div class="eq">\[\mathbf x\cdot\mathbf e_n=\sum_k c_k\,\underbrace{\mathbf e_k\cdot\mathbf e_n}_{=\,0\ (k\neq n)}=c_n\,\|\mathbf e_n\|^2\;\Longrightarrow\;c_n=\frac{\mathbf x\cdot\mathbf e_n}{\|\mathbf e_n\|^2}\]</div>
+      <p style="margin:0"><b>函數也是向量：</b>把 \(\sum_i\) 換成 \(\int_0^{T_0}\)，其餘完全對應。</p>
+      <div class="tblwrap"><table class="cmp">
+        <thead><tr><th></th><th>\(\mathbb R^n\) 的向量</th><th>週期函數（一個週期）</th></tr></thead>
+        <tbody>
+          <tr><th>內積</th><td>\(\mathbf x\cdot\mathbf y=\sum_i x_i\,y_i\)</td><td>\(\langle x,y\rangle=\int_0^{T_0}x(t)\,y(t)\,dt\)</td></tr>
+          <tr><th>正交基底</th><td>\(\mathbf e_1,\dots,\mathbf e_N\)</td><td>\(1,\ \cos k\omega_0t,\ \sin k\omega_0t\)</td></tr>
+          <tr><th>長度平方</th><td>\(\|\mathbf e_n\|^2\)</td><td>\(\|1\|^2=T_0\)；\(\|\cos k\omega_0t\|^2=\|\sin k\omega_0t\|^2=\tfrac{T_0}{2}\)</td></tr>
+          <tr><th>取座標</th><td>\(c_n=\dfrac{\mathbf x\cdot\mathbf e_n}{\|\mathbf e_n\|^2}\)</td><td>\(a_n=\dfrac{\langle x,\cos n\omega_0t\rangle}{T_0/2}\)</td></tr>
+        </tbody>
+      </table></div>
+      <div class="box key"><b>所以：</b>「乘上 \(\cos(n\omega_0t)\) 再積分一個週期」就是<b>和第 n 個基底做內積</b>，量出 \(x\) 在這個方向上有多少；除以基底的長度平方，就是座標 \(a_n\)。正交性讓其他方向的投影全部為 0，每個係數都能<b>單獨</b>算，不必解聯立方程。</div>
+    </div>
+    <div class="rcol">
+    <div class="demo">
+      <div class="demo-h"><b>拖動向量 x：投影 vs. 真正座標</b><span class="tag">ℝ² · 示意</span></div>
+      <canvas id="cla" class="h-xl" aria-label="可拖動的二維向量與兩個基底"></canvas>
+      <div class="ctls">
+        <div class="ctl"><label for="laAng">e₂ 與 e₁ 夾角</label><input type="range" id="laAng" min="30" max="150" step="5" value="90"><output data-for="laAng" data-d="0" data-u="°"></output></div>
+      </div>
+      <div class="btns"><button class="btn" id="la90">正交（90°）</button><button class="btn" id="la60">不正交（60°）</button></div>
+      <div class="readout" id="rla"></div>
+    </div>
+    <div class="phys"><span class="ph-k">物理意義</span>內積 ⟨x, e⟩ 衡量「x 和參考波形 e 有多像」，在訊號處理裡叫做<b>相關（correlation）</b>。想知道訊號裡有沒有某個頻率，就拿那個頻率的參考波和它相乘再平均：同步的地方乘積為正，不同步的地方正負抵銷。</div>
+    </div>
+  </div>
+</section>
+
 <!-- ================================================================ 11 -->
 <section class="slide" id="s11" data-chapter="Ch.3 傅立葉級數" data-title="正交性如何導出係數" hidden>
   <h2>正交性如何導出係數？（關鍵推導）</h2>
-  <div class="cols">
+  <div class="cols wide-l">
     <div>
-      <p><b class="c-acc">①</b> 級數形式</p>
-      <div class="eq">\[x(t)=a_0+\sum_{k=1}^{\infty}\Big[a_k\cos(k\omega_0 t)+b_k\sin(k\omega_0 t)\Big]\]</div>
-      <p><b class="c-acc">②</b> 兩邊乘 \(\cos(n\omega_0 t)\)，於 \([0,T_0]\)（完整基本週期）積分。</p>
-      <div class="box note"><p style="margin:0"><b class="c-dc">③</b> 因正交性，<b>只留下</b> \(a_n\cdot T_0/2\)：</p>
-        <div class="eq">\[\int_0^{T_0}x(t)\cos(n\omega_0 t)\,dt=a_n\cdot\frac{T_0}{2}\]</div></div>
-      <p style="margin:0"><b class="c-acc">④</b> 結果：</p>
-      <div class="eq">\[a_n=\frac{2}{T_0}\int_0^{T_0}x(t)\cos(n\omega_0 t)\,dt\]</div><div class="eq">\[b_n=\frac{2}{T_0}\int_0^{T_0}x(t)\sin(n\omega_0 t)\,dt\]</div>
+      <div class="btns" style="margin-bottom:6px"><button class="btn" data-rev="s11" data-act="next">下一步</button><button class="btn" data-rev="s11" data-act="all">全部顯示</button><button class="btn" data-rev="s11" data-act="reset">重來</button></div>
+      <div class="reveal-line"><p style="margin:0"><b class="c-acc">①</b> 假設 \(x(t)\) 是基底 \(1,\cos k\omega_0t,\sin k\omega_0t\) 的線性組合（係數未知）：</p>
+        <div class="eq">\[x(t)=a_0\cdot 1+\sum_{k=1}^{\infty}\Big[a_k\cos(k\omega_0 t)+b_k\sin(k\omega_0 t)\Big]\]</div></div>
+      <div class="reveal-line"><p style="margin:0"><b class="c-acc">②</b> 要取出 \(a_n\)：兩邊和基底 \(\cos(n\omega_0t)\) <b>做內積</b>，也就是乘上 \(\cos(n\omega_0t)\)、在完整週期 \([0,T_0]\) 積分。逐項看：</p>
+        <div class="eq">\[\begin{aligned}\langle x,\cos n\omega_0t\rangle&=a_0\underbrace{\langle 1,\cos n\omega_0t\rangle}_{=\,0}+\sum_{k\ge1}b_k\underbrace{\langle\sin k\omega_0t,\cos n\omega_0t\rangle}_{=\,0}\\&\quad+\sum_{k\ge1}a_k\underbrace{\langle\cos k\omega_0t,\cos n\omega_0t\rangle}_{=\,0\ (k\neq n),\ \ T_0/2\ (k=n)}\;=\;a_n\cdot\tfrac{T_0}{2}\end{aligned}\]</div></div>
+      <div class="reveal-line"><p style="margin:0"><b class="c-acc">③</b> 除以基底的長度平方 \(\|\cos n\omega_0t\|^2=T_0/2\)，就得到座標；換成 \(\sin n\omega_0t\)、\(1\)（\(\|1\|^2=T_0\)）做法相同：</p>
+        <div class="eq">\[a_n=\frac{\langle x,\cos n\omega_0t\rangle}{\|\cos n\omega_0t\|^2}=\frac{2}{T_0}\int_0^{T_0}x(t)\cos(n\omega_0t)\,dt\]</div>
+        <div class="eq">\[b_n=\frac{2}{T_0}\int_0^{T_0}x(t)\sin(n\omega_0t)\,dt,\qquad a_0=\frac{\langle x,1\rangle}{\|1\|^2}=\frac{1}{T_0}\int_0^{T_0}x(t)\,dt\]</div></div>
+      <p class="reveal-line small" style="margin:6px 0 0"><b class="c-dc">所以</b> \(a_0\) 前面是 \(1/T_0\)、\(a_n\)、\(b_n\) 前面是 \(2/T_0\)：分母都是基底的長度平方，和 \(\mathbb R^n\) 的 \(c_n=\mathbf x\cdot\mathbf e_n/\|\mathbf e_n\|^2\) 同一條公式。無限和逐項積分的嚴謹性見 Appendix A2。</p>
     </div>
+    <div class="rcol">
     <div class="demo">
       <div class="demo-h"><b>係數萃取器</b><span class="tag">例：x(t)=2+3cos(ω₀t)+4sin(3ω₀t)</span></div>
       <canvas id="c11a" class="h-s"></canvas>
@@ -461,8 +522,10 @@ table.rt th { color: var(--muted); font-weight: 500; }
         <div class="ctl"><label for="s11n">諧波 \(n\)</label><input type="range" id="s11n" min="1" max="5" step="1" value="1"><output data-for="s11n" data-d="0"></output></div>
         <div class="ctl"><label for="s11L">積分長度 / \(T_0\)</label><input type="range" id="s11L" min="0.3" max="1.5" step="0.05" value="1"><output data-for="s11L" data-d="2"></output></div>
       </div>
-      <div class="btns"><span class="seg" role="group" aria-label="基底"><button id="s11cos" aria-pressed="true">乘 cos → aₙ</button><button id="s11sin" aria-pressed="false">乘 sin → bₙ</button></span></div>
+      <div class="btns"><span class="seg" role="group" aria-label="基底"><button id="s11one" aria-pressed="false">乘 1 → a₀</button><button id="s11cos" aria-pressed="true">乘 cos → aₙ</button><button id="s11sin" aria-pressed="false">乘 sin → bₙ</button></span></div>
       <div class="readout" id="r11"></div>
+    </div>
+    <div class="phys reveal-line"><span class="ph-k">物理意義</span>「乘上 cos(nω₀t) 再取平均」在硬體上就是<b>混頻器（乘法器）＋低通濾波器（取平均）</b>。鎖相放大器與雷達接收機的 I/Q 解調都這樣做：本地振盪器產生同頻率的 cos 與 sin，分別乘上接收訊號再平均，得到的兩個數就對應 aₙ 與 bₙ（差一個比例常數）。</div>
     </div>
   </div>
 </section>
@@ -477,6 +540,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <div class="eq">\[a_n=A_n\cos\varphi_n,\qquad b_n=-A_n\sin\varphi_n\]</div>
       <div class="eq">\[A_n=\sqrt{a_n^2+b_n^2},\qquad \varphi_n=\operatorname{atan2}(-b_n,\,a_n)\quad(A_n>0)\]</div>
       <div class="box big">每個頻率成分都能用「頻率＋振幅＋相位」描述。</div>
+      <div class="phys"><span class="ph-k">物理意義</span>(aₙ, bₙ) 就是接收機量到的 I/Q 兩個分量。Aₙ 是這個頻率成分有多強，φₙ 是它相對參考波錯開多少時間。雷達把相位換算成距離（Δφ = −4πR/λ），把相位隨時間的變化率換算成速度（都卜勒）。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>拖動點 \((a_n,-b_n)\)</b><span class="tag">注意縱軸是 −bₙ</span></div>
@@ -497,6 +561,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <p><b class="c-spec">單邊振幅頻譜：</b>0 Hz→2；100 Hz→3；300 Hz→4</p>
       <p><b class="c-phase">相位頻譜：</b>100 Hz→0°；300 Hz→−90°</p>
       <p class="small muted">\(\sin\theta=\cos(\theta-90^\circ)\)，所以 300 Hz 相位是 −90°。第三諧波振幅 4，但 \(a_3=0\)（4 在 \(b_3\)）。</p>
+      <div class="phys"><span class="ph-k">物理意義</span>振幅譜告訴我們<b>功率分配在哪些頻率</b>：第 n 次諧波的平均功率是 Aₙ²/2，直流是 a₀²。本例 2² + 3²/2 + 4²/2 = 16.5，正好等於 x(t)² 的時間平均（Parseval）。相位譜告訴我們各成分「對齊的時間」：只改相位，功率不變，波形形狀卻會變。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>改係數，三張圖同步</b><span class="tag">單邊 Fourier-series 譜，不是雙邊 FT</span></div>
@@ -527,6 +592,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <p class="big">問題：非週期訊號能不能描述頻率成分？</p>
       <p class="big c-acc">→ 回答：Fourier Transform（傅立葉轉換）</p>
       <p class="small muted">非週期不代表「沒有頻率」，而是不能用有限基本週期對應的離散諧波描述整條時間軸。</p>
+      <div class="phys"><span class="ph-k">物理意義</span>真實世界的訊號多半只出現一次：一個雷達脈衝、一聲拍手、一次心跳。它們不會無限重複，沒有基頻可言，所以要改用傅立葉轉換描述它們的頻率內容。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>把週期拉長：脈衝列 → 單一脈衝</b><span class="tag">時間域 · 示意</span></div>
@@ -549,6 +615,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <div class="row"><b>定義</b><div class="eq">\[\Delta f=\frac{1}{T}\]</div></div><div class="row"><b>有限區間頻譜</b><div class="eq">\[X_T(f)=\int_{-T/2}^{T/2}x(t)\,e^{-j2\pi f t}\,dt\]</div></div>
       <div class="box key"><div class="row"><b class="c-acc">得</b><div class="eq">\[c_n=X_T(f_n)\,\Delta f\]</div></div></div>
       <p class="small c-echo"><b>注意：</b>\(c_n\) 與 \(X_T(f_n)\) 不同，兩者差一個 \(\Delta f\)。</p>
+      <div class="phys"><span class="ph-k">物理意義</span>Δf = 1/T 有直接的物理意義：<b>觀察得越久，頻率分得越細</b>。量 1 秒大約能分辨相差 1 Hz 的兩個頻率，只量 0.1 秒就只能分辨約 10 Hz。雷達用都卜勒頻率測速，解析度也受同一個限制。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>T 變大：格點變密，cₙ 變小</b><span class="tag">頻率域 · 例：寬 1 s 矩形脈衝</span></div>
@@ -573,6 +640,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <p><b>黎曼和 → 積分：</b></p>
       <div class="eq">\[x(t)=\int_{-\infty}^{\infty}X(f)\,e^{\,j2\pi f t}\,df\]</div><p style="margin:0"><b>其中：</b></p><div class="eq">\[X(f)=\int_{-\infty}^{\infty}x(t)\,e^{-j2\pi f t}\,dt\]</div>
       <p class="small muted">形式上的極限；嚴謹成立需要適當的收斂條件。\(c_n\) 本身會隨 \(\Delta f\) 趨近 0，連續頻譜描述的是 \(c_n/\Delta f\)。</p>
+      <div class="phys"><span class="ph-k">物理意義</span>連續頻譜 X(f) 是「每單位頻寬有多少」，也就是頻譜<b>密度</b>：若 x 的單位是 V，X(f) 的單位是 V/Hz。非週期訊號的能量分佈在連續的頻率上，|X(f)|² 是能量頻譜密度，且 ∫|X(f)|² df = ∫|x(t)|² dt（Parseval）。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>黎曼和長條 ↔ 時間上的週期副本</b><span class="tag">寬 1 s 矩形脈衝</span></div>
@@ -596,6 +664,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <div class="row"><b>Euler 公式</b><div class="eq">\[e^{\,j\theta}=\cos\theta+j\sin\theta\]</div></div>
       <div class="row"><b>極座標形式</b><div class="eq">\[X(f)=|X(f)|\,e^{\,j\varphi(f)}\]</div></div>
       <div class="box"><b>解讀：</b>\(|X(f)|\) 描述頻率成分大小；\(\varphi(f)\) 描述相位；\(X(f)\) 通常是<b>複數</b>函數。</div>
+      <div class="phys"><span class="ph-k">物理意義</span>e<sup>−j2πft</sup> 是頻率 f 的「探針」：X(f) 就是訊號和這個探針做內積，和 Ch.3 乘 cos、sin 再積分完全一樣，只是用 Euler 公式把 cos 與 sin 合成一個複數。|X(f)| 是這個頻率有多少，φ(f) 是這個頻率成分在時間上怎麼對齊。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>某一頻率 f₁ 的 X(f₁) 是複平面上的向量</b><span class="tag">例：寬 1 s 脈衝，延遲 τ</span></div>
@@ -620,6 +689,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <div class="row"><b>矩形脈衝</b><div class="eq">\[x(t)=\begin{cases}1, & |t|\leq T/2\\ 0, & |t|>T/2\end{cases}\]</div></div>
       <p style="margin:0"><b>傅立葉轉換：</b></p><div class="eq">\[X(f)=\int_{-T/2}^{T/2}e^{-j2\pi f t}\,dt=T\,\operatorname{sinc}(fT)\]</div><div class="row"><b>定義</b><div class="eq">\[\operatorname{sinc}(u)=\frac{\sin(\pi u)}{\pi u},\quad \operatorname{sinc}(0)=1\]</div></div>
       <div class="box big">時間上有限的脈衝，在頻率上具有連續的頻譜。</div>
+      <div class="phys"><span class="ph-k">物理意義</span><b>脈衝越短，頻譜越寬</b>：主瓣寬度 2/T，時間長度與頻寬此消彼長。雷達要分開兩個靠得很近的目標，需要短脈衝（大頻寬 B），距離解析度約 ΔR ≈ c/(2B)。純延遲只改相位、不改 |X(f)|，所以距離資訊藏在相位隨頻率變化的斜率 −2πτ 裡。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>改寬度 T 與延遲 τ</b><span class="tag">純延遲只改相位，不改 |X(f)|</span></div>
@@ -649,6 +719,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       </ul>
       <div class="box"><b class="c-acc">展望：</b>後續學習 DFT、FFT 與 FMCW 雷達</div>
       <div class="chips"><span class="c-sig">Time</span>→<span class="c-acc">Fourier</span>→<span class="c-spec">Spectrum</span>→<span class="c-echo">Radar interpretations</span></div>
+      <div class="phys"><span class="ph-k">物理意義</span><b>物理對照：</b>回波延遲 τ → 距離 R = cτ/2；回波相位 → 波長幾分之一的微小位移；都卜勒頻移 f<sub>D</sub> → 徑向速度 v ≈ λf<sub>D</sub>/2；振幅 → 目標反射強弱與傳播衰減；頻寬 B → 能分辨多近的兩個目標。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>單站雷達：延遲與都卜勒</b><span class="tag">公式換算示意 · 非量測結果</span></div>
@@ -672,6 +743,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
   <div class="reveal-line"><div class="eq">\[\int_0^{T_0}\cos^2(n\omega_0 t)\,dt=\int_0^{T_0}\frac{1+\cos(2n\omega_0 t)}{2}\,dt=\frac{T_0}{2}\qquad (n\geq 1)\]</div></div>
   <div class="reveal-line"><p style="margin:0"><b>因此</b>（\(m\neq n\)，\(m,n\geq1\)，故 \(m-n\)、\(m+n\) 都是非零整數）：</p><div class="eq">\[\int_0^{T_0}\cos(m\omega_0 t)\cos(n\omega_0 t)\,dt=\tfrac12\int_0^{T_0}\cos\big((m-n)\omega_0 t\big)dt+\tfrac12\int_0^{T_0}\cos\big((m+n)\omega_0 t\big)dt=0\]</div></div>
   <div class="reveal-line box"><b>結論：</b>不同正整數諧波正交；相同諧波平方積分是 \(T_0/2\)（限定積分一個完整基本週期、正整數索引）。</div>
+  <div class="phys"><span class="ph-k">物理意義</span>正交性的物理版本：兩個不同頻率的振動，乘積在一個週期內平均為 0，也就是彼此「平均不交換能量」，所以疊加後的平均功率沒有交叉項。</div>
 </section>
 
 <!-- ================================================================ A2 -->
@@ -683,6 +755,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
   <div class="reveal-line"><p style="margin:0"><b>若</b> \(S_N\to x\) in \(L^2\)，<b>由 Cauchy–Schwarz：</b></p><div class="eq">\[\big|\langle S_N-x,\cos(n\omega_0 t)\rangle\big|\leq\|S_N-x\|_2\,\|\cos(n\omega_0 t)\|_2\;\xrightarrow[N\to\infty]{}\;0\]</div></div>
   <div class="reveal-line"><p style="margin:0"><b>故：</b></p><div class="eq">\[a_n=\frac{2}{T_0}\big\langle x,\cos(n\omega_0 t)\big\rangle\]</div></div>
   <div class="reveal-line box"><b>重點：</b>不能無條件交換無限和與積分；先取有限部分和，再用內積連續性取極限。</div>
+  <div class="phys"><span class="ph-k">物理意義</span>L² 範數就是能量：‖x‖² = ∫|x|² dt。Parseval 恆等式 (1/T₀)∫x² dt = a₀² + ½Σ(aₙ² + bₙ²) 說的是：平均功率 = 直流功率 + 各諧波功率。「S_N → x in L²」的物理意思是<b>誤差訊號的能量趨近 0</b>，即使跳躍點附近始終有誤差。</div>
 </section>
 
 <!-- ================================================================ A3 -->
@@ -697,6 +770,7 @@ table.rt th { color: var(--muted); font-weight: 500; }
       <p style="margin:0"><b>都卜勒近似：</b></p>
       <div class="eq">\[|f_D|\approx\frac{2\,|v_r|}{\lambda}\qquad (|v_r|\ll c)\]</div>
       <div class="box warn big">注意：單頻相位有模糊性；FT 不自動給出距離。</div>
+      <div class="phys"><span class="ph-k">物理意義</span>相位只能確定到 2π 以內，所以單一頻率只能知道距離「除以 λ/2 的餘數」。實務上用多個頻率、調頻（FMCW）或脈衝計時來解決模糊；FT 給的是頻率內容，距離要靠延遲或相位關係再換算。</div>
     </div>
     <div class="demo">
       <div class="demo-h"><b>相位模糊：不同 R，同一個相位</b><span class="tag">以 λ 為單位 · 示意</span></div>
@@ -1109,21 +1183,75 @@ demos.s11 = () => {
   const px = new Plot($("#c11a"), { t: 18, b: 22 }), pp = new Plot($("#c11b"));
   bindOutputs($("#s11")); onInputs(["s11n", "s11L"], () => draw());
   let basis = "cos";
-  [["#s11cos", "cos"], ["#s11sin", "sin"]].forEach(([s, b]) => $(s).addEventListener("click", () => { basis = b; $("#s11cos").setAttribute("aria-pressed", b === "cos"); $("#s11sin").setAttribute("aria-pressed", b === "sin"); draw(); }));
+  const bt = [["#s11one", "one"], ["#s11cos", "cos"], ["#s11sin", "sin"]];
+  bt.forEach(([q, b]) => $(q).addEventListener("click", () => { basis = b; bt.forEach(([q2, b2]) => $(q2).setAttribute("aria-pressed", b2 === b)); draw(); }));
   const x = u => 2 + 3 * Math.cos(TAU * u) + 4 * Math.sin(3 * TAU * u);
   const truth = { cos: [0, 3, 0, 0, 0, 0], sin: [0, 0, 0, 4, 0, 0] };
   function draw() {
-    const n = val("s11n"), L = val("s11L"), bf = u => (basis === "cos" ? Math.cos : Math.sin)(n * TAU * u), pr = u => x(u) * bf(u);
-    const est = 2 / L * integrate(pr, 0, L, 6000);
+    const n = val("s11n"), L = val("s11L"), one = basis === "one";
+    $("#s11n").disabled = one;
+    const bf = one ? (() => 1) : (u => (basis === "cos" ? Math.cos : Math.sin)(n * TAU * u)), pr = u => x(u) * bf(u);
+    const bl = one ? "1" : `${basis}(${n === 1 ? "" : n}ω₀t)`;
+    const I = integrate(pr, 0, L, 6000), norm = one ? L : L / 2, est = I / norm;
     if (px.begin([0, 1.5], [-6, 10])) { px.axes({ xt: [0, 0.5, 1, 1.5], xd: 1, yt: [0, 5], grid: true });
       px.fn(x, tok("--sig"), { w: 2 }); px.fn(u => 3 * bf(u), tok("--accent"), { w: 1.6, dash: [5, 4] });
-      px.text(px.L + 6, 9, `x(t)（藍）與基底 ${basis}(${n}ω₀t)（綠虛線，放大 3 倍）`, tok("--ink"), { px: true, size: 12.5 }); }
+      px.text(px.L + 6, 9, `x(t)（藍）與基底 ${bl}（綠虛線，放大 3 倍）`, tok("--ink"), { px: true, size: 12.5 }); }
     if (pp.begin([0, 1.5], [-10, 10])) { pp.axes({ xt: [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5], xd: 2, yt: [-8, -4, 0, 4, 8], xl: "t / T₀", zero: true });
       pp.c.save(); pp.c.fillStyle = tok("--tint"); pp.c.globalAlpha = 0.6; pp.c.fillRect(pp.X(0), pp.T, pp.X(L) - pp.X(0), pp.B - pp.T); pp.c.restore();
       pp.fill(pr, 0, L, tok("--accent"), tok("--muted"), 0.4); pp.fn(pr, tok("--ink"), { w: 1.8 }); pp.vline(L, tok("--dc"), [5, 3], 2);
-      pp.text(pp.L + 6, 10, "乘積 x(t)·基底；陰影＝積分範圍 [0, L]", tok("--ink"), { px: true, size: 12.5 }); }
-    const t = truth[basis][n] ?? 0, sym = basis === "cos" ? "a" : "b", ok = Math.abs(L - 1) < 1e-9;
-    $("#r11").innerHTML = `(2/L)∫₀ᴸ x·${basis}(${n}ω₀t) dt = <b>${fmt(est, 4)}</b>　真值 ${sym}${"₀₁₂₃₄₅"[n]} = <b>${t}</b><br>${ok ? "L = T₀（完整週期）→ 正交性成立，只留下目標係數" : "L ≠ T₀ → 其他項沒有抵銷，結果被污染"}`;
+      pp.text(pp.L + 6, 10, `乘積 x(t)·${bl}；陰影＝積分範圍 [0, L]`, tok("--ink"), { px: true, size: 12.5 }); }
+    const ok = Math.abs(L - 1) < 1e-9, t = one ? 2 : (truth[basis][n] ?? 0);
+    const sym = one ? "a₀" : (basis === "cos" ? "a" : "b") + "₀₁₂₃₄₅"[n];
+    const nm = ok ? (one ? "‖1‖² = T₀" : `‖${bl}‖² = T₀/2`) : (one ? "L" : "L/2");
+    $("#r11").innerHTML = `內積 ⟨x, ${bl}⟩ = <b>${fmt(I, 3)} T₀</b>　÷ ${nm}　→ <b>${fmt(est, 3)}</b>　（真值 ${sym} = <b>${t}</b>）<br>${ok ? "L = T₀（完整週期）→ 其他基底的內積全為 0，只留下目標係數" : "L ≠ T₀ → 正交性不成立，其他項沒有抵銷，結果被污染"}`;
+  }
+  return draw;
+};
+
+// ---------- 網站版新增：線性代數的正交投影
+demos.la = () => {
+  const cv = $("#cla"), p = new Plot(cv, { l: 10, r: 10, t: 10, b: 10 });
+  bindOutputs($("#la")); onInputs(["laAng"], () => draw());
+  let x = [1.8, 1.6], drag = false;
+  const setAng = d => { $("#laAng").value = d; $("#laAng").dispatchEvent(new Event("input")); };
+  $("#la90").addEventListener("click", () => setAng(90)); $("#la60").addEventListener("click", () => setAng(60));
+  const setFrom = e => { const r = cv.getBoundingClientRect();
+    x = [Math.round(Math.max(-2, Math.min(3.3, p.ix(e.clientX - r.left))) * 20) / 20, Math.round(Math.max(-0.9, Math.min(2.8, p.iy(e.clientY - r.top))) * 20) / 20]; draw(); };
+  cv.addEventListener("pointerdown", e => { drag = true; cv.setPointerCapture(e.pointerId); setFrom(e); });
+  cv.addEventListener("pointermove", e => { if (drag) setFrom(e); });
+  cv.addEventListener("pointerup", () => { drag = false; });
+  cv.style.cursor = "crosshair";
+  const dot = (u, v) => u[0] * v[0] + u[1] * v[1];
+  function draw() {
+    const deg0 = val("laAng"), th = deg0 * PI / 180, e1 = [1.5, 0], e2 = [1.2 * Math.cos(th), 1.2 * Math.sin(th)];
+    const det = e1[0] * e2[1] - e1[1] * e2[0];
+    const c1 = (x[0] * e2[1] - x[1] * e2[0]) / det, c2 = (e1[0] * x[1] - e1[1] * x[0]) / det;
+    const p1 = dot(x, e1) / dot(e1, e1), p2 = dot(x, e2) / dot(e2, e2), g = dot(e1, e2), orth = Math.abs(g) < 1e-9;
+    if (p.begin([-2.3, 3.6], [-1.05, 3.05], { equal: true })) {
+      p.clip(() => {
+        for (let k = -4; k <= 4; k++) { p.path([k, k], [-3, 4], tok("--grid"), { w: 1 }); p.path([-4, 4], [k, k], tok("--grid"), { w: 1 }); }
+        const u2 = [Math.cos(th), Math.sin(th)];
+        p.path([-4, 4], [0, 0], tok("--spec"), { w: 1, a: 0.5, dash: [2, 4] });
+        p.path([-5 * u2[0], 5 * u2[0]], [-5 * u2[1], 5 * u2[1]], tok("--phase"), { w: 1, a: 0.5, dash: [2, 4] });
+        // true coordinates: parallelogram
+        p.path([c1 * e1[0], x[0], c2 * e2[0]], [c1 * e1[1], x[1], c2 * e2[1]], tok("--muted"), { w: 1.6, dash: [6, 4] });
+        // perpendicular projections
+        p.path([x[0], p1 * e1[0]], [x[1], p1 * e1[1]], tok("--dc"), { w: 1.6, dash: [3, 3] });
+        p.path([x[0], p2 * e2[0]], [x[1], p2 * e2[1]], tok("--dc"), { w: 1.6, dash: [3, 3] });
+      });
+      p.dot(c1 * e1[0], c1 * e1[1], tok("--muted"), 5, true); p.dot(c2 * e2[0], c2 * e2[1], tok("--muted"), 5, true);
+      p.dot(p1 * e1[0], p1 * e1[1], tok("--dc"), 4.5); p.dot(p2 * e2[0], p2 * e2[1], tok("--dc"), 4.5);
+      p.arrow(0, 0, e1[0], e1[1], tok("--spec"), { w: 3.2, hs: 10 }); p.text(e1[0] + 0.05, -0.28, "e₁", tok("--spec"), { size: 15 });
+      p.arrow(0, 0, e2[0], e2[1], tok("--phase"), { w: 3.2, hs: 10 }); p.text(e2[0] + (e2[0] < 0 ? -0.35 : 0.12), e2[1] + 0.2, "e₂", tok("--phase"), { size: 15 });
+      p.arrow(0, 0, x[0], x[1], tok("--sig"), { w: 3.2, hs: 11 }); p.dot(x[0], x[1], tok("--sig"), 6);
+      p.text(x[0] + (x[0] > 1.6 ? -0.2 : 0.2), x[1] + 0.3, "x  拖我", tok("--ink"), { size: 13, align: x[0] > 1.6 ? "right" : "left" });
+      p.text(p.L + 8, p.T + 12, "灰虛線＋空心點：真正座標（平行四邊形拆解）", tok("--muted"), { px: true, size: 12 });
+      p.text(p.L + 8, p.T + 30, "橘虛線＋實心點：垂直投影 (x·eₖ)/‖eₖ‖²", tok("--dc"), { px: true, size: 12 });
+    }
+    const same = Math.abs(c1 - p1) < 5e-3 && Math.abs(c2 - p2) < 5e-3;
+    $("#rla").innerHTML = `真正座標（解 x = c₁e₁ + c₂e₂）：c₁ = <b>${fmt(c1, 2)}</b>，c₂ = <b>${fmt(c2, 2)}</b><br>投影公式 (x·eₖ)/‖eₖ‖²：　　　ĉ₁ = <b>${fmt(p1, 2)}</b>，ĉ₂ = <b>${fmt(p2, 2)}</b><br>` +
+      (orth ? `e₁·e₂ = 0 → 投影就是座標：一次內積＋一次除法就取出係數`
+            : `e₁·e₂ = ${fmt(g, 2)} ≠ 0 → ${same ? "這個 x 剛好相同，換個位置試試" : "投影 ≠ 座標：e₂ 的成分「漏」進 e₁ 的投影，只能解聯立方程"}`);
   }
   return draw;
 };
@@ -1341,13 +1469,19 @@ $$("[data-rev]").forEach(b => b.addEventListener("click", () => {
   else if (act === "reset") lines.forEach((l, i) => l.classList.toggle("off", i > 0));
   else { const nx = lines.find(l => l.classList.contains("off")); if (nx) nx.classList.remove("off"); }
 }));
-["s20", "s21"].forEach(id => $$(".reveal-line", $("#" + id)).forEach((l, i) => i > 0 && l.classList.add("off")));
+["s11", "s20", "s21"].forEach(id => $$(".reveal-line", $("#" + id)).forEach((l, i) => i > 0 && l.classList.add("off")));
 
 // ------------------------------------------------------------------ deck controller
 const slides = $$(".slide"), N = slides.length;
 const notes = JSON.parse($("#notes-data").textContent);
 // 網站版新增頁（data-extra）的備註寫在本檔；其他頁依序對應 PPT 的備註
 const extraNotes = {
+  la: `【時間】約 1:40（網站版新增頁）
+【講法】推導係數之前，先回答關鍵問題：為什麼要「乘上 cos(nω₀t) 再積分」？答案來自線性代數。在 ℝⁿ 裡，若基底 e₁…e_N 兩兩正交、x = Σ c_k e_k，要取出 c_n，就讓兩邊和 e_n 做內積：除了 k = n 那一項，其他 e_k·e_n 全為 0，於是 x·e_n = c_n‖e_n‖²，c_n = x·e_n / ‖e_n‖²。函數也一樣：一個週期上的函數可以看成「無限維的向量」，內積把 Σ x_i y_i 換成 ∫ x(t)y(t)dt；1、cos(kω₀t)、sin(kω₀t) 就是一組兩兩正交的基底（上一頁剛驗證過）。所以「乘上 cos(nω₀t) 再積分」就是和第 n 個基底做內積，再除以它的長度平方 T₀/2，就得到座標 aₙ。
+【示範】右圖先維持 90°：拖動 x，灰色（平行四邊形拆出的真正座標）和橘色（垂直投影）落在同一點，兩組數字相同。按「不正交（60°）」：兩者分開了。e₂ 有一部分沿著 e₁ 的方向，x 對 e₁ 的投影混進了 e₂ 的貢獻，只能解聯立方程。這就是正交性的價值：每個係數都能單獨、用一次內積算出來。
+【物理意義】內積在訊號處理裡叫做相關（correlation），衡量訊號和參考波形有多像；接收機要偵測某個頻率，就拿那個頻率的參考波和訊號相乘再平均。
+【常見誤解】「乘 cos 是為了把 cos 消掉」——不是。乘上基底是在做投影，讓其他項消失的是正交性。另外，基底的長度平方不一定是 1：‖cos‖² = T₀/2、‖1‖² = T₀，所以係數公式前面的常數不同。
+【銜接下一頁】把這個想法套到傅立葉級數上，一步一步導出 aₙ、bₙ、a₀。`,
   intro1: `【時間】約 1:20（網站版新增頁）
 【講法】在進入 Ch.1 之前先回答：傅立葉分析在做什麼？核心想法是把一個訊號寫成許多不同頻率的正弦之和，每個頻率有自己的振幅與相位，這組資訊就是頻譜。從訊號求出各頻率成分叫「分析」，把成分加回去得到訊號叫「合成」。週期訊號用傅立葉級數（頻率是 n f₀ 的離散值），一般訊號用傅立葉轉換（頻率是連續的 f）。
 【示範】右邊選方波：只用第 1 個諧波時只是一個正弦；把 K 拉到 5、15、25，和越來越接近方波，下方頻譜同時長出更多諧波。方波與三角波的偶數諧波係數都是 0（空心點），鋸齒波則每個諧波都有。均方根誤差隨 K 下降。
@@ -1360,10 +1494,25 @@ const extraNotes = {
 【常見誤解】「轉到頻率域就會失去時間資訊」——在適當條件下，正逆轉換可以完整還原；只是同一份資訊換一種表示方式。
 【銜接下一頁】接下來從 Ch.1 開始，正式定義訊號、時間域與頻率域。`,
 };
-const noteEdits = { s2: ["【銜接下一頁】先從最基本的「訊號」與「時間域」開始。", "【銜接下一頁】進入 Ch.1 之前，先用兩頁說明傅立葉分析是什麼，以及為什麼要在時間域與頻率域之間轉換。"] };
+const noteOverride = { s11: `【時間】約 1:50
+【講法】按「下一步」逐行說明。(1) 假設 x(t) 能寫成 1、cos(kω₀t)、sin(kω₀t) 的線性組合，係數 a₀、aₖ、bₖ 未知。(2) 要取 aₙ，兩邊和 cos(nω₀t) 做內積，也就是乘上 cos(nω₀t)，在完整基本週期 [0,T₀] 積分。逐項看：⟨1, cos nω₀t⟩ = 0；所有 ⟨sin kω₀t, cos nω₀t⟩ = 0；⟨cos kω₀t, cos nω₀t⟩ 在 k≠n 時為 0、k = n 時為 T₀/2。整條式子只剩 aₙ·T₀/2。(3) 除以基底的長度平方 T₀/2，得 aₙ = (2/T₀)∫₀^{T₀} x(t)cos(nω₀t)dt；換成 sin(nω₀t) 得 bₙ；換成常數 1（長度平方 T₀）得 a₀ = (1/T₀)∫₀^{T₀} x(t)dt。這就是上一頁 c_n = x·e_n/‖e_n‖² 的函數版本，也說明了為什麼 a₀ 前面是 1/T₀、aₙ 前面是 2/T₀。
+【圖說】右圖用 x(t)=2+3cos(ω₀t)+4sin(3ω₀t)：選「乘 cos」、n = 1，內積 = 1.5 T₀，除以 T₀/2 得 a₁ = 3；切到 n = 2，正負面積抵銷，a₂ = 0；選「乘 sin」、n = 3 得 b₃ = 4；選「乘 1」得 a₀ = 2。把積分長度 L 拉離 1，結果就不準了，因為正交性只在完整週期成立。
+【嚴謹推導（務必完整保留）】對有限傅立葉和 S_N，有 ∫S_N cos(nω₀t)dt = aₙ∫cos²(nω₀t)dt = aₙT₀/2（N≥n），其他項為 0。對 x∈L²[0,T₀]，利用傅立葉部分和 S_N→x 在 L² 中收斂，且內積連續，得到係數公式。bₙ 同理。直流 a₀=(1/T₀)∫x。這個細節可回答教授關於「無限級數是否可以逐項積分」的提問（見 Appendix A2）。
+【物理意義】乘上 cos(nω₀t) 再取平均，在硬體上就是混頻器加低通濾波器：鎖相放大器與雷達的 I/Q 解調，都用本地振盪器的 cos、sin 乘上接收訊號再平均，得到的兩個數就對應 aₙ、bₙ（差一個比例常數）。
+【常見誤解】不可聲稱任意時間區間都正交；必須是完整的基本週期（或其整數倍）。
+【銜接下一頁】得到 aₙ、bₙ 之後，怎麼轉成「振幅」與「相位」？` };
+const noteEdits = { s10: ["【銜接下一頁】有了正交性，就能一步導出 aₙ、bₙ 的公式。", "【銜接下一頁】為什麼「乘上 cos 再積分」就能取出係數？下一頁先用線性代數的正交投影來看。"], s2: ["【銜接下一頁】先從最基本的「訊號」與「時間域」開始。", "【銜接下一頁】進入 Ch.1 之前，先用兩頁說明傅立葉分析是什麼，以及為什麼要在時間域與頻率域之間轉換。"] };
 { let d = 0, mainNo = 0, apx = 0;
   slides.forEach(s => {
     if (s.dataset.extra) s._notes = extraNotes[s.id] || ""; else { s._notes = notes[d++] || ""; const e = noteEdits[s.id]; if (e) s._notes = s._notes.replace(e[0], e[1]); }
+    if (noteOverride[s.id]) s._notes = noteOverride[s.id];
+    const ph = $(".phys", s);
+    if (ph && !s._notes.includes("【物理意義】")) {
+      const c = ph.cloneNode(true); c.querySelector(".ph-k")?.remove();
+      $$("sup", c).forEach(x => x.replaceWith("^{" + x.textContent + "}")); $$("sub", c).forEach(x => x.replaceWith("_" + x.textContent));
+      const line = "【物理意義】" + c.textContent.trim(), k = s._notes.indexOf("【銜接");
+      s._notes = k >= 0 ? s._notes.slice(0, k) + line + "\n" + s._notes.slice(k) : s._notes.trimEnd() + "\n" + line;
+    }
     s._label = s.dataset.chapter.startsWith("Appendix") ? "A" + (++apx) : String(++mainNo).padStart(2, "0");
   }); }
 let cur = 0, redraw = null, anim = null, last = 0;
